@@ -1,0 +1,22 @@
+{
+    "paths": {
+        "input_json": "D:\\AIAT_roadmap\\output_parser\\slides_plan.json",
+        "output_dir": "D:\\AIAT_LearnerSlides\\output_html",
+        "background_image": "D:\\AIAT_LearnerSlides\\inputs\\branding\\background.jpg",
+        "logo_image": "D:\\AIAT_LearnerSlides\\inputs\\branding\\logo.png"
+    },
+    "branding": {
+        "colors": {
+        "header_text": "#003366",      
+        "body_text": "#1F2937",        
+        "primary_accent": "#007BFF",   
+        "secondary_accent": "#87CEEB", 
+        "soft_bg": "#F0F8FF",         
+        "border": "#4682B4"            
+        }
+    },
+    "animation": {
+        "style_prompt": "I want a high-energy vibe where items bounce in.",
+        "interaction": "click-to-reveal" 
+    }
+}

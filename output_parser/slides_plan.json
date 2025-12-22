@@ -1,0 +1,135 @@
+[
+    {
+        "main_title": "Welcome & Big Picture",
+        "sections": [
+            {
+                "subheader": "What is NLP?",
+                "content": "Natural Language Processing (NLP) enables computers to understand, interpret, and generate human language. It's vital for building intelligent systems and transforming human-computer interaction."
+            },
+            {
+                "subheader": "Our Journey",
+                "content": "From raw text data → deep linguistic understanding → deploying advanced language AI systems."
+            }
+        ],
+        "image_search_description": "Data flowing into a central processing unit, with words and symbols, transforming into intelligent insights, futuristic text interface.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_0.svg"
+    },
+    {
+        "main_title": "Career Outlook",
+        "sections": [
+            {
+                "subheader": "Who is This For?",
+                "content": "Learners with programming fundamentals interested in language AI, text analysis, and building intelligent communication systems."
+            },
+            {
+                "subheader": "Key Roles",
+                "content": "NLP Engineer, Data Scientist (NLP focus), AI/ML Researcher, Computational Linguist, Text Mining Specialist."
+            },
+            {
+                "subheader": "Industries & Demand",
+                "content": "Tech (AI/SaaS), Customer Service, Marketing, Healthcare, Finance, Media. Exploding demand for specialists to build, evaluate, and deploy robust, ethical NLP solutions amidst the rise of Generative AI."
+            }
+        ],
+        "image_search_description": "Diverse group of professionals collaborating, showing specific roles like 'NLP Engineer' and 'Data Scientist' highlighted, AI-powered customer service, financial text analysis.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_1.svg"
+    },
+    {
+        "main_title": "What You’ll Learn / Outcomes",
+        "sections": [
+            {
+                "subheader": "Learning Journey",
+                "content": "You’ll learn to preprocess and represent text, model language sequences, and leverage advanced Transformer architectures to build sophisticated language AI."
+            },
+            {
+                "subheader": "Key Skills",
+                "content": "Apply core NLP techniques (tokenization, stemming, NER, sentiment analysis).\nImplement word embeddings (Word2Vec) & sequence models (RNNs, LSTMs).\nMaster Transformer foundations, self-attention, and differentiate BERT vs. GPT.\nEvaluate, optimize, and troubleshoot NLP models, considering ethical implications."
+            },
+            {
+                "subheader": "Career Impact",
+                "content": "Build and deploy robust, responsible NLP pipelines for diverse applications.\nDevelop a portfolio demonstrating end-to-end language AI capabilities."
+            }
+        ],
+        "image_search_description": "Neural network processing text, word embeddings visualization, sequence model diagram, Transformer architecture components.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_2.svg"
+    },
+    {
+        "main_title": "Learning Journey Overview",
+        "sections": [
+            {
+                "subheader": "Stage 1: Foundations in NLP",
+                "content": "Master Python-based NLP fundamentals, text preprocessing, word representations (BoW, TF-IDF, Word2Vec), and core applications like NER and Sentiment Analysis. Focus on robust, responsible pipeline development."
+            },
+            {
+                "subheader": "Stage 2: Sequence Modeling",
+                "content": "Dive into Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTMs) to handle sequential data, understanding vanishing gradients and how LSTMs solve long-term dependencies."
+            },
+            {
+                "subheader": "Stage 3: Advanced Transformers",
+                "content": "Explore the revolutionary Transformer architecture, self-attention, positional encoding, and the encoder-decoder paradigm. Differentiate between models like BERT and GPT, and learn to select architectures for specific tasks."
+            },
+            {
+                "subheader": "Project-Based Learning",
+                "content": "Each module culminates in a graduation project, allowing you to apply concepts to real-world language tasks and build a comprehensive portfolio."
+            }
+        ],
+        "image_search_description": "Three distinct stages on a roadmap, each with icons representing text data, sequences, and advanced AI models (e.g., a robot head or brain).",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_3.svg"
+    },
+    {
+        "main_title": "Hands-On Learning & Projects",
+        "sections": [
+            {
+                "subheader": "Learn By Doing",
+                "content": "From practical Python exercises to implementing complete NLP pipelines, you'll gain hands-on experience at every step."
+            },
+            {
+                "subheader": "Project Variety",
+                "content": "Build NLP pipelines for text cleaning, feature extraction, and classification.\nImplement and evaluate sequence models for tasks like time series or text generation.\nDevelop applications leveraging Transformer models for Q&A, generation, or classification.\nRigorous evaluation, error analysis, and optimization for efficiency and ethics."
+            },
+            {
+                "subheader": "Your Portfolio",
+                "content": "Create a robust portfolio showcasing your ability to design, implement, and deploy various NLP solutions, ready to present to employers."
+            }
+        ],
+        "image_search_description": "Hands-on coding environment, text data being processed, visualization of NLP model results, project reports, portfolio presentation.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_4.svg"
+    },
+    {
+        "main_title": "What You’ll Be Able to Achieve",
+        "sections": [
+            {
+                "subheader": "Your Transformation",
+                "content": "You'll move from understanding basic text concepts to confidently building and deploying advanced language AI systems that contribute real value."
+            },
+            {
+                "subheader": "Tangible Artifacts",
+                "content": "You'll produce clean NLP codebases, trained word embeddings, functional RNN/LSTM models, and Transformer-based applications (e.g., sentiment classifier, Q&A system, text generator) with documented evaluations."
+            },
+            {
+                "subheader": "Real-World Readiness",
+                "content": "Possess the skills to tackle complex language challenges, demonstrate expertise in cutting-edge NLP, and build AI systems that truly understand and interact with human language."
+            }
+        ],
+        "image_search_description": "Person confidently presenting an AI application, text analysis dashboard, chatbot in action, language translation interface, a deployed NLP service.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_5.svg"
+    },
+    {
+        "main_title": "Next Steps & Mindset",
+        "sections": [
+            {
+                "subheader": "Start Today",
+                "content": "Begin with Module 1: Introduction to NLP using Python and Word Representation. Take action today to start your journey."
+            },
+            {
+                "subheader": "Key Habits for Success",
+                "content": "Cultivate grit, consistency, and a problem-solving mindset. Practice debugging and iterative refinement, especially with language ambiguities."
+            },
+            {
+                "subheader": "Shape the Future",
+                "content": "Empower yourself to shape the future of human-computer interaction by mastering Natural Language Processing."
+            }
+        ],
+        "image_search_description": "Open laptop with code on screen, 'start' button, an encouraging path, a person learning with focus, growth mindset visualization.",
+        "image_path": "D:\\AIAT_roadmap\\output_parser\\images\\slide_6.svg"
+    }
+]
