@@ -149,7 +149,7 @@ HTML_PLAYER_SHELL = """
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {{
-            --theme-color: #4f46e5; /* Default Indigo */
+            --theme-color: #4f46e5; 
         }}
 
         html {{ scroll-behavior: smooth; }}
@@ -196,6 +196,19 @@ HTML_PLAYER_SHELL = """
             transform: none !important;
             filter: none !important;
             pointer-events: auto !important;
+        }}
+
+        /* --- EDIT MODE STYLES --- */
+        .editing-mode {{
+            border: 2px dashed var(--theme-color);
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            outline: none;
+            cursor: text;
+        }}
+        body.dark-mode .editing-mode {{
+            background-color: rgba(0, 0, 0, 0.2);
         }}
 
         /* --- LAYOUT UTILS --- */
@@ -266,11 +279,11 @@ HTML_PLAYER_SHELL = """
                 </button>
 
                 <div class="flex gap-2 justify-between sidebar-text">
-                    <button onclick="setTheme('#6366f1')" class="w-8 h-8 rounded-full bg-[#6366f1] border-2 border-transparent hover:scale-110 transition ring-2 ring-offset-2 ring-offset-gray-900 ring-[#6366f1]" title="Indigo"></button>
-                    <button onclick="setTheme('#f43f5e')" class="w-8 h-8 rounded-full bg-[#f43f5e] border-2 border-transparent hover:scale-110 transition" title="Rose"></button>
-                    <button onclick="setTheme('#10b981')" class="w-8 h-8 rounded-full bg-[#10b981] border-2 border-transparent hover:scale-110 transition" title="Emerald"></button>
-                    <button onclick="setTheme('#f59e0b')" class="w-8 h-8 rounded-full bg-[#f59e0b] border-2 border-transparent hover:scale-110 transition" title="Amber"></button>
-                    <button onclick="setTheme('#0ea5e9')" class="w-8 h-8 rounded-full bg-[#0ea5e9] border-2 border-transparent hover:scale-110 transition" title="Sky"></button>
+                    <button onclick="setTheme('#6366f1')" data-color="#6366f1" class="theme-btn w-8 h-8 rounded-full bg-[#6366f1] border-2 border-transparent hover:scale-110 transition" title="Indigo"></button>
+                    <button onclick="setTheme('#f43f5e')" data-color="#f43f5e" class="theme-btn w-8 h-8 rounded-full bg-[#f43f5e] border-2 border-transparent hover:scale-110 transition" title="Rose"></button>
+                    <button onclick="setTheme('#10b981')" data-color="#10b981" class="theme-btn w-8 h-8 rounded-full bg-[#10b981] border-2 border-transparent hover:scale-110 transition" title="Emerald"></button>
+                    <button onclick="setTheme('#f59e0b')" data-color="#f59e0b" class="theme-btn w-8 h-8 rounded-full bg-[#f59e0b] border-2 border-transparent hover:scale-110 transition" title="Amber"></button>
+                    <button onclick="setTheme('#0ea5e9')" data-color="#0ea5e9" class="theme-btn w-8 h-8 rounded-full bg-[#0ea5e9] border-2 border-transparent hover:scale-110 transition" title="Sky"></button>
                 </div>
             </div>
 
@@ -303,6 +316,11 @@ HTML_PLAYER_SHELL = """
                     </button>
                 </div>
             </div>
+             <div class="pt-4 border-t border-gray-800 sidebar-text">
+                 <button onclick="resetAllEdits()" class="w-full text-left text-xs text-red-400 hover:text-red-300 transition uppercase font-bold tracking-wider">
+                    <i class="fas fa-trash-alt mr-2"></i> Reset My Edits
+                 </button>
+            </div>
 
             <div class="pt-8 border-t border-gray-800 sidebar-text">
                 <div class="text-xs text-gray-500 mb-2">PROGRESS</div>
@@ -316,7 +334,7 @@ HTML_PLAYER_SHELL = """
         <header class="bg-white/90 backdrop-blur sticky top-0 z-40 px-8 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm transition-colors duration-300 dark:bg-slate-900/90 dark:border-slate-700">
             <div class="flex items-center gap-4">
                  <img src="{logo_image}" class="h-10 w-auto object-contain" alt="Logo">
-                 <h1 class="text-xl font-bold text-gray-800 dark:text-white transition-colors">Course Viewer</h1>
+                 <h1 class="text-xl font-bold text-gray-800 dark:text-white transition-colors">Course Roadmap</h1>
             </div>
             <div id="slide-counter" class="text-sm font-bold text-gray-400"></div>
         </header>
@@ -336,7 +354,10 @@ HTML_PLAYER_SHELL = """
     </div>
 
     <script>
-        const SLIDES = {js_slides_data};
+        // --- DATA INITIALIZATION ---
+        const ORIGINAL_SLIDES = {js_slides_data};
+        let SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES)); 
+        
         const state = {{ layout: 'vertical', reveal: 'click', currentSlideIdx: 0, darkMode: false, theme: '#6366f1' }};
         const container = document.getElementById('app-container');
         const scrollContainer = document.getElementById('main-scroll-container');
@@ -347,10 +368,85 @@ HTML_PLAYER_SHELL = """
         const backdrop = document.getElementById('zoom-backdrop');
 
         window.onload = () => {{ 
+            loadUserEdits();
             renderApp(); 
             updateButtonStyles(); 
             setTheme(state.theme); 
         }};
+        
+        // --- EDITING LOGIC (NEW) ---
+        function loadUserEdits() {{
+            const saved = localStorage.getItem('my_course_edits');
+            if (saved) {{
+                try {{
+                    const savedSlides = JSON.parse(saved);
+                    // Merge saved content into current slides structure
+                    if (savedSlides.length === SLIDES.length) {{
+                         SLIDES = savedSlides;
+                         console.log("Loaded user edits from local storage.");
+                    }}
+                }} catch(e) {{ console.error("Error loading edits", e); }}
+            }}
+        }}
+
+        function toggleEdit(index) {{
+            const contentDiv = document.getElementById(`content-${{index}}`);
+            const editBtn = document.getElementById(`edit-btn-${{index}}`);
+            const saveBtn = document.getElementById(`save-btn-${{index}}`);
+            
+            if (contentDiv) {{
+                contentDiv.contentEditable = "true";
+                contentDiv.classList.add('editing-mode');
+                contentDiv.focus();
+                
+                // Show Save, Hide Edit
+                if(editBtn) editBtn.classList.add('hidden');
+                if(saveBtn) saveBtn.classList.remove('hidden');
+                
+                // Disable Reveal Mode while editing to avoid confusion
+                if (state.reveal !== 'all') {{
+                    // Temporarily show all items in this container so user sees what they are editing
+                    contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
+                }}
+            }}
+        }}
+
+        function saveSlide(index) {{
+            const contentDiv = document.getElementById(`content-${{index}}`);
+            const editBtn = document.getElementById(`edit-btn-${{index}}`);
+            const saveBtn = document.getElementById(`save-btn-${{index}}`);
+
+            if (contentDiv) {{
+                // 1. Capture HTML
+                const newHtml = contentDiv.innerHTML;
+                
+                // 2. Update Memory
+                SLIDES[index].html = newHtml;
+                
+                // 3. Persist to Local Storage
+                localStorage.setItem('my_course_edits', JSON.stringify(SLIDES));
+                
+                // 4. UI Reset
+                contentDiv.contentEditable = "false";
+                contentDiv.classList.remove('editing-mode');
+                
+                if(editBtn) editBtn.classList.remove('hidden');
+                if(saveBtn) saveBtn.classList.add('hidden');
+                
+                alert("Changes saved locally! They will persist even if you refresh.");
+                
+                // 5. Re-render to ensure clean state (optional, but good for resetting listeners)
+                // renderApp(); // Keeping it simple: don't full re-render to avoid losing scroll pos
+            }}
+        }}
+        
+        function resetAllEdits() {{
+            if(confirm("Are you sure? This will delete all your text changes and revert to the original course content.")) {{
+                localStorage.removeItem('my_course_edits');
+                SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES));
+                renderApp();
+            }}
+        }}
 
         // --- THEME & DARK MODE ---
         function setTheme(colorHex) {{
@@ -446,6 +542,21 @@ HTML_PLAYER_SHELL = """
             setActive('btn-click', state.reveal === 'click');
             setActive('btn-all', state.reveal === 'all');
             
+            // --- NEW CODE STARTS HERE ---
+            // Update Theme Color Buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {{
+                const color = btn.getAttribute('data-color');
+                if (color === state.theme) {{
+                    // Add ring and force the ring color using CSS variable
+                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-gray-900');
+                    btn.style.setProperty('--tw-ring-color', color);
+                }} else {{
+                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-gray-900');
+                    btn.style.removeProperty('--tw-ring-color');
+                }}
+            }});
+            // --- NEW CODE ENDS HERE ---
+
             const dmBg = document.getElementById('dm-toggle-bg');
             if (state.darkMode) dmBg.style.backgroundColor = state.theme;
             
@@ -465,7 +576,7 @@ HTML_PLAYER_SHELL = """
                 prevBtn.querySelector('span').innerText = 'Back';
                 nextIcon.className = "fas fa-chevron-down";
                 prevIcon.className = "fas fa-chevron-up";
-                nextBtn.appendChild(nextIcon); // Re-append icon because innerHTML wiped it
+                nextBtn.appendChild(nextIcon); 
             }}
         }}
 
@@ -474,7 +585,7 @@ HTML_PLAYER_SHELL = """
             if (state.layout === 'vertical') renderVerticalLayout();
             else renderHorizontalLayout();
             updateButtonStyles();
-            updateProgress(); // <--- ADDED THIS TO FIX PROGRESS RESET
+            updateProgress(); 
         }}
 
         function renderVerticalLayout() {{
@@ -484,13 +595,23 @@ HTML_PLAYER_SHELL = """
             SLIDES.forEach((slide, index) => {{
                 const divider = index === 0 ? '' : '<hr class="my-12 border-gray-100">';
                 fullHtml += `
-                    <section class="p-10" id="slide-sec-${{index}}">
+                    <section class="p-10 relative group" id="slide-sec-${{index}}">
                         ${{divider}}
-                        <div class="mb-6">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Part ${{index + 1}}</span>
-                            <h2 class="text-3xl font-bold transition-colors duration-300">${{slide.title}}</h2>
+                        <div class="mb-6 flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Part ${{index + 1}}</span>
+                                <h2 class="text-3xl font-bold transition-colors duration-300">${{slide.title}}</h2>
+                            </div>
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button id="edit-btn-${{index}}" onclick="toggleEdit(${{index}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Content">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button id="save-btn-${{index}}" onclick="saveSlide(${{index}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
+                                    <i class="fas fa-check"></i> Save
+                                </button>
+                            </div>
                         </div>
-                        <div class="prose max-w-none text-gray-600 transition-colors duration-300">
+                        <div id="content-${{index}}" class="prose max-w-none text-gray-600 transition-colors duration-300 p-2 rounded">
                             ${{slide.html}}
                         </div>
                     </section>
@@ -503,14 +624,24 @@ HTML_PLAYER_SHELL = """
 
         function renderHorizontalLayout() {{
             const slide = SLIDES[state.currentSlideIdx];
+            const idx = state.currentSlideIdx;
+            
             const card = document.createElement('main');
-            card.className = "bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden p-12 min-h-[600px] flex flex-col animation-fade transition-colors duration-300";
+            card.className = "bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden p-12 min-h-[600px] flex flex-col animation-fade transition-colors duration-300 relative";
             card.innerHTML = `
                 <div class="border-b border-gray-100 pb-6 mb-6 flex justify-between items-center">
                     <h2 class="text-3xl font-bold transition-colors duration-300">${{slide.title}}</h2>
-                    <span class="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">Slide ${{state.currentSlideIdx + 1}} / ${{SLIDES.length}}</span>
+                    <div class="flex items-center gap-4">
+                        <button id="edit-btn-${{idx}}" onclick="toggleEdit(${{idx}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Slide">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button id="save-btn-${{idx}}" onclick="saveSlide(${{idx}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
+                            <i class="fas fa-check"></i> Save
+                        </button>
+                        <span class="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">Slide ${{idx + 1}} / ${{SLIDES.length}}</span>
+                    </div>
                 </div>
-                <div class="prose max-w-none text-gray-600 flex-1 transition-colors duration-300">
+                <div id="content-${{idx}}" class="prose max-w-none text-gray-600 flex-1 transition-colors duration-300 p-2 rounded">
                     ${{slide.html}}
                 </div>
                 <div class="flex justify-between mt-8 pt-6 border-t border-gray-50">
@@ -527,6 +658,8 @@ HTML_PLAYER_SHELL = """
         // --- NAVIGATION LOGIC ---
 
         function handleMainAction() {{
+            if (document.querySelector('.editing-mode')) return; // Block nav while editing
+
             // 1. Reveal Logic
             if (state.reveal === 'click') {{
                 const hiddenItem = container.querySelector('.reveal-item:not(.visible)');
@@ -537,33 +670,30 @@ HTML_PLAYER_SHELL = """
                     return;
                 }}
             }}
-            // 2. Navigation Logic (if everything revealed)
+            // 2. Navigation Logic
             if (state.layout === 'horizontal') nextSlide();
             else scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
         }}
 
         function handleBackAction() {{
-            // 1. Un-Reveal Logic (Go back one step)
+            if (document.querySelector('.editing-mode')) return; 
+
             if (state.reveal === 'click') {{
                 const visibleItems = Array.from(document.querySelectorAll('.reveal-item.visible'));
                 if (visibleItems.length > 0) {{
                     const lastItem = visibleItems[visibleItems.length - 1];
                     lastItem.classList.remove('visible');
                     
-                    // Scroll to the item BEFORE the one we just hid, to keep context
                     if (visibleItems.length > 1) {{
                         visibleItems[visibleItems.length - 2].scrollIntoView({{ behavior: 'smooth', block: 'center' }});
                     }} else {{
-                        // If we hid the first item, scroll to top of section
                         if(state.layout === 'horizontal') container.scrollIntoView({{behavior: 'smooth'}});
                     }}
-                    
                     updateProgress();
                     return;
                 }}
             }}
             
-            // 2. Navigation Logic (if nothing to un-reveal)
             if (state.layout === 'horizontal') {{
                 prevSlide();
             }} else {{
@@ -589,12 +719,9 @@ HTML_PLAYER_SHELL = """
 
         function updateProgress() {{
             if (state.layout === 'horizontal') {{
-                // Horizontal Mode: Calculate based on Slide Count (Global Progress)
-                // (currentSlideIdx + 1) because index starts at 0
                 const pct = Math.round(((state.currentSlideIdx + 1) / SLIDES.length) * 100);
                 document.getElementById('progress-pct').innerText = pct + "%";
             }} else {{
-                // Vertical Mode: Keep existing logic (counts all items in the DOM)
                 const total = document.querySelectorAll('.reveal-item').length;
                 const visible = document.querySelectorAll('.reveal-item.visible').length;
                 if (total > 0) {{
@@ -620,6 +747,9 @@ HTML_PLAYER_SHELL = """
         }}
 
         document.addEventListener('keydown', (e) => {{
+            // Disable hotkeys while editing
+            if (document.querySelector('.editing-mode')) return;
+
             if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{ 
                 e.preventDefault(); 
                 handleMainAction(); 
