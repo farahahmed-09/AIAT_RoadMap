@@ -149,7 +149,6 @@ def determine_css_animation(prompt_text):
 #     """
 #     return prompt
 
-
 def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
     sections = slide_data.get('sections', [])
     content_context = ""
@@ -173,8 +172,7 @@ def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
     **Task:** Write inner HTML for a document section.
     **Context:** {content_context}
     
-    **CRITICAL ANIMATION REQUIREMENT:**
-    The user wants to "Click to Reveal" content piece by piece.
+    **CRITICAL REQUIREMENT:**
     1. You MUST wrap **EVERY** single Paragraph `<p>`, List Item `<li>`, or Header `<h3>` in the class `reveal-item`.
     2. Example: `<p class="reveal-item text-lg...">Content...</p>`
     
@@ -337,7 +335,6 @@ def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
 # """
 
 
-
 HTML_PLAYER_SHELL = """
 <!DOCTYPE html>
 <html lang="en">
@@ -346,133 +343,314 @@ HTML_PLAYER_SHELL = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Material</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         html {{ scroll-behavior: smooth; }}
-        body {{ font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }}
+        body {{ font-family: 'Segoe UI', Roboto, sans-serif; transition: background 0.3s; }}
         
-        /* Custom Animation */
+        /* --- DYNAMIC ANIMATION CSS --- */
         {custom_animation_css}
 
-        /* The item is hidden but takes up space in flow? 
-           Actually for 'reveal' we usually want it hidden entirely or opaque.
-           Let's stick to opacity/transform so layout doesn't jump */
+        /* --- REVEAL LOGIC --- */
+        /* By default, items are hidden */
         .reveal-item {{
-            /* Initial state handled by classes in determing_css_animation */
+            /* Opacity 0 handled by custom_animation_css usually, but reinforcing here */
+        }}
+        
+        /* IF 'Show All' is active, we override opacity to 1 forcedly */
+        body.reveal-disabled .reveal-item {{
+            opacity: 1 !important;
+            transform: none !important;
+            filter: none !important;
+            pointer-events: auto !important;
         }}
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {{ width: 12px; }}
-        ::-webkit-scrollbar-track {{ background: #f8fafc; }}
-        ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 6px; border: 3px solid #f8fafc; }}
-        ::-webkit-scrollbar-thumb:hover {{ background: #94a3b8; }}
+        /* --- LAYOUT UTILS --- */
+        .sidebar-expanded {{ width: 250px; }}
+        .sidebar-collapsed {{ width: 100px; }}
+        
+        ::-webkit-scrollbar {{ width: 8px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
+        ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen flex overflow-hidden">
 
-    <header class="fixed top-0 inset-x-0 h-20 bg-white/95 backdrop-blur-md shadow-sm z-50 flex items-center justify-between px-6 border-b border-gray-200">
-        <div class="flex items-center gap-4">
-            <img src="{logo_image}" class="h-10 w-auto object-contain" alt="Logo">
-            <div class="h-8 w-px bg-gray-300 mx-2"></div>
-            <h1 class="text-lg font-semibold text-gray-700">Course Overview</h1>
+    <aside class="bg-gray-900 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-50 shadow-2xl sidebar-expanded" id="sidebar">
+        <div class="p-6 flex items-center gap-3 border-b border-gray-700 h-20">
+            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold">AI</div>
+            <span class="font-bold text-lg tracking-wide sidebar-text">Controls</span>
         </div>
-        
-        <div class="flex items-center gap-4">
-            <div class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full" id="progress-indicator">
-                0% Complete
+
+        <div class="p-6 flex-1 overflow-y-auto space-y-8">
+            
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Layout Style</h3>
+                <div class="flex flex-col gap-2">
+                    <button onclick="setMode('layout', 'vertical')" id="btn-vertical" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-gray-700 hover:bg-gray-800 bg-indigo-600 border-indigo-500">
+                        <i class="fas fa-scroll w-5"></i>
+                        <span class="sidebar-text text-sm">Vertical Scroll</span>
+                    </button>
+                    <button onclick="setMode('layout', 'horizontal')" id="btn-horizontal" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-gray-700 hover:bg-gray-800 text-gray-400">
+                        <i class="fas fa-tv w-5"></i>
+                        <span class="sidebar-text text-sm">Slideshow</span>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Animation</h3>
+                <div class="flex flex-col gap-2">
+                    <button onclick="setMode('reveal', 'click')" id="btn-click" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-gray-700 hover:bg-gray-800 bg-indigo-600 border-indigo-500">
+                        <i class="fas fa-mouse-pointer w-5"></i>
+                        <span class="sidebar-text text-sm">Click to Reveal</span>
+                    </button>
+                    <button onclick="setMode('reveal', 'all')" id="btn-all" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-gray-700 hover:bg-gray-800 text-gray-400">
+                        <i class="fas fa-eye w-5"></i>
+                        <span class="sidebar-text text-sm">Show All</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-gray-800 sidebar-text">
+                <div class="text-xs text-gray-500 mb-2">PROGRESS</div>
+                <div class="text-2xl font-bold text-indigo-400" id="progress-pct">0%</div>
             </div>
         </div>
-    </header>
 
-    <div class="w-full max-w-4xl mx-auto pt-28 pb-32 px-4">
+        <button onclick="toggleSidebar()" class="p-4 bg-gray-800 hover:bg-gray-700 border-t border-gray-700 flex justify-center">
+             <i class="fas fa-bars"></i>
+        </button>
+    </aside>
+
+    <div class="flex-1 relative h-screen overflow-y-auto bg-slate-100" id="main-scroll-container">
         
-        <main id="document-card" class="bg-white rounded-3xl shadow-xl border border-white/50 overflow-hidden min-h-[80vh]">
-            </main>
+        <header class="bg-white/90 backdrop-blur sticky top-0 z-40 px-8 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-4">
+                 <img src="{logo_image}" class="h-10 w-auto object-contain" alt="Logo">
+                 <h1 class="text-xl font-bold text-gray-800">Course Roadmap</h1>
+            </div>
+            <div id="slide-counter" class="text-sm font-bold text-gray-400"></div>
+        </header>
+
+        <div id="app-container" class="max-w-5xl mx-auto px-6 py-10 pb-32 min-h-full">
+            </div>
+
+        <button id="float-next-btn" onclick="handleMainAction()" class="fixed bottom-10 right-10 z-50 bg-indigo-600 text-white px-6 py-4 rounded-full font-bold shadow-2xl hover:bg-indigo-700 hover:scale-105 transition flex items-center gap-2">
+            <span>Next</span> <i class="fas fa-chevron-down"></i>
+        </button>
 
     </div>
-
-    <button onclick="nextStep()" class="fixed bottom-10 right-10 z-50 bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl rounded-full p-4 transition-all hover:scale-110 group flex items-center gap-2 pr-6">
-        <span class="bg-white/20 rounded-full w-8 h-8 flex items-center justify-center">▼</span>
-        <span class="font-bold">Next</span>
-    </button>
 
     <script>
         const SLIDES = {js_slides_data};
         
-        window.onload = function() {{
-            const container = document.getElementById('document-card');
-            
-            SLIDES.forEach((slide, index) => {{
-                // Create a Section Wrapper for each slide
-                const section = document.createElement('section');
-                section.className = "p-12 relative group";
-                
-                // Add a divider for all except the first one
-                const borderHtml = index === 0 ? '' : '<hr class="my-12 border-slate-100">';
-                
-                // Slide Title styling
-                const titleHtml = `
-                    <div class="mb-8">
-                        <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Part ${{index + 1}}</span>
-                        <h2 class="text-3xl font-bold {header_color} mt-1">${{slide.title}}</h2>
-                    </div>
-                `;
-
-                // Inject content
-                section.innerHTML = borderHtml + titleHtml + slide.html;
-                container.appendChild(section);
-            }});
-
-            // Initial cleanup of reveal items
-            document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
-            updateProgress();
+        // --- APP STATE ---
+        const state = {{
+            layout: 'vertical', // 'vertical' or 'horizontal'
+            reveal: 'click',    // 'click' or 'all'
+            currentSlideIdx: 0
         }};
 
-        // --- GLOBAL CLICK & SCROLL LOGIC ---
-        
-        function nextStep() {{
-            const hiddenItem = document.querySelector('.reveal-item:not(.visible)');
-            
-            if (hiddenItem) {{
-                hiddenItem.classList.add('visible');
-                
-                // Scroll logic: slightly offset so it's not hidden behind header
-                const headerOffset = 100; 
-                const elementPosition = hiddenItem.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset - (window.innerHeight / 3);
-            
-                window.scrollTo({{
-                    top: offsetPosition,
-                    behavior: "smooth"
-                }});
+        // --- DOM ELEMENTS ---
+        const container = document.getElementById('app-container');
+        const scrollContainer = document.getElementById('main-scroll-container');
+        const nextBtn = document.getElementById('float-next-btn');
 
-                updateProgress();
+        // --- INITIALIZATION ---
+        window.onload = () => {{
+            renderApp();
+            updateButtonStyles();
+        }};
+
+        // --- SETTINGS CONTROLLER ---
+        function setMode(type, value) {{
+            state[type] = value;
+            updateButtonStyles();
+            
+            if (type === 'layout') {{
+                renderApp(); // Re-render HTML structure
+            }} else if (type === 'reveal') {{
+                toggleRevealClass(); // Just toggle CSS
+            }}
+        }}
+
+        function updateButtonStyles() {{
+            // Helper to toggle active classes on sidebar buttons
+            const setActive = (id, isActive) => {{
+                const el = document.getElementById(id);
+                if (isActive) {{
+                    el.classList.add('bg-indigo-600', 'border-indigo-500', 'text-white');
+                    el.classList.remove('text-gray-400');
+                }} else {{
+                    el.classList.remove('bg-indigo-600', 'border-indigo-500', 'text-white');
+                    el.classList.add('text-gray-400');
+                }}
+            }};
+
+            setActive('btn-vertical', state.layout === 'vertical');
+            setActive('btn-horizontal', state.layout === 'horizontal');
+            setActive('btn-click', state.reveal === 'click');
+            setActive('btn-all', state.reveal === 'all');
+            
+            toggleRevealClass();
+        }}
+
+        function toggleRevealClass() {{
+            if (state.reveal === 'all') {{
+                document.body.classList.add('reveal-disabled');
+                nextBtn.innerHTML = (state.layout === 'horizontal') ? 'Next Slide <i class="fas fa-arrow-right"></i>' : 'Scroll Down <i class="fas fa-arrow-down"></i>';
             }} else {{
-                // Optional: Scroll to bottom if done
-                window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
+                document.body.classList.remove('reveal-disabled');
+                nextBtn.innerHTML = 'Next Step <i class="fas fa-chevron-down"></i>';
+            }}
+        }}
+
+        // --- RENDER ENGINE ---
+        function renderApp() {{
+            container.innerHTML = ''; // Clear current content
+            
+            if (state.layout === 'vertical') {{
+                renderVerticalLayout();
+            }} else {{
+                renderHorizontalLayout();
+            }}
+        }}
+
+        function renderVerticalLayout() {{
+            // Render ONE big card containing all sections
+            const card = document.createElement('main');
+            card.className = "bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden";
+            
+            let fullHtml = '';
+            SLIDES.forEach((slide, index) => {{
+                const divider = index === 0 ? '' : '<hr class="my-12 border-gray-100">';
+                fullHtml += `
+                    <section class="p-10" id="slide-sec-${{index}}">
+                        ${{divider}}
+                        <div class="mb-6">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Part ${{index + 1}}</span>
+                            <h2 class="text-3xl font-bold {header_color}">${{slide.title}}</h2>
+                        </div>
+                        <div class="prose max-w-none text-gray-600">
+                            ${{slide.html}}
+                        </div>
+                    </section>
+                `;
+            }});
+            
+            card.innerHTML = fullHtml;
+            container.appendChild(card);
+            
+            // Clean up reveals
+            document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
+        }}
+
+        function renderHorizontalLayout() {{
+            // Render ONLY the current slide as a centered card
+            const slide = SLIDES[state.currentSlideIdx];
+            
+            const card = document.createElement('main');
+            card.className = "bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden p-12 min-h-[600px] flex flex-col animation-fade";
+            
+            card.innerHTML = `
+                <div class="border-b border-gray-100 pb-6 mb-6 flex justify-between items-center">
+                    <h2 class="text-3xl font-bold {header_color}">${{slide.title}}</h2>
+                    <span class="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">Slide ${{state.currentSlideIdx + 1}} / ${{SLIDES.length}}</span>
+                </div>
+                <div class="prose max-w-none text-gray-600 flex-1">
+                    ${{slide.html}}
+                </div>
+                <div class="flex justify-between mt-8 pt-6 border-t border-gray-50">
+                     <button onclick="prevSlide()" class="text-gray-400 hover:text-indigo-600 font-bold px-4 py-2 hover:bg-indigo-50 rounded-lg transition">← Back</button>
+                     <div class="text-xs text-gray-300 self-center">Use Spacebar or Next Button</div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+            
+            // Clean up reveals (only within this card)
+            if (state.reveal === 'click') {{
+                 card.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
+            }}
+        }}
+
+        // --- ACTION LOGIC ---
+        
+        function handleMainAction() {{
+            if (state.reveal === 'click') {{
+                // Try to find a hidden item first
+                const hiddenItem = container.querySelector('.reveal-item:not(.visible)');
+                if (hiddenItem) {{
+                    hiddenItem.classList.add('visible');
+                    hiddenItem.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                    updateProgress();
+                    return;
+                }}
+            }}
+            
+            // If no hidden items (or we are in 'Show All' mode)
+            if (state.layout === 'horizontal') {{
+                nextSlide();
+            }} else {{
+                // Vertical mode, just scroll down slightly
+                scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
+            }}
+        }}
+
+        function nextSlide() {{
+            if (state.currentSlideIdx < SLIDES.length - 1) {{
+                state.currentSlideIdx++;
+                renderApp();
+                scrollContainer.scrollTop = 0;
+            }} else {{
+                alert("End of Course!");
+            }}
+        }}
+
+        function prevSlide() {{
+            if (state.currentSlideIdx > 0) {{
+                state.currentSlideIdx--;
+                renderApp();
+                scrollContainer.scrollTop = 0;
             }}
         }}
 
         function updateProgress() {{
             const total = document.querySelectorAll('.reveal-item').length;
             const visible = document.querySelectorAll('.reveal-item.visible').length;
-            if (total === 0) return;
-            const pct = Math.round((visible / total) * 100);
-            document.getElementById('progress-indicator').innerText = `${{pct}}%`;
+            
+            if (total > 0) {{
+                const pct = Math.round((visible / total) * 100);
+                document.getElementById('progress-pct').innerText = pct + "%";
+            }}
         }}
 
-        // Click anywhere (except button) triggers next
-        document.addEventListener('click', (e) => {{
-            if (e.target.closest('button') || e.target.tagName === 'A') return;
-            nextStep();
-        }});
+        // --- SIDEBAR UI ---
+        function toggleSidebar() {{
+            const sb = document.getElementById('sidebar');
+            if (sb.classList.contains('sidebar-expanded')) {{
+                sb.classList.remove('sidebar-expanded');
+                sb.classList.add('sidebar-collapsed');
+                document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
+            }} else {{
+                sb.classList.remove('sidebar-collapsed');
+                sb.classList.add('sidebar-expanded');
+                document.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('hidden'));
+            }}
+        }}
 
-        // Keyboard navigation
+        // --- KEYBOARD SUPPORT ---
         document.addEventListener('keydown', (e) => {{
             if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{
                 e.preventDefault();
-                nextStep();
+                handleMainAction();
+            }}
+            if (e.key === "ArrowLeft" && state.layout === 'horizontal') {{
+                prevSlide();
             }}
         }});
+
     </script>
 </body>
 </html>
