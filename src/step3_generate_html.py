@@ -161,7 +161,7 @@ def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
         - **LAYOUT:** Float the image to the right.
         - **HTML Structure:**
           <div class="clearfix mb-8">
-             <img src="SLIDE_IMAGE_PLACEHOLDER" class="float-right ml-8 mb-6 w-5/12 max-w-sm rounded-lg shadow-md border {C_BORDER}">
+             <img src="SLIDE_IMAGE_PLACEHOLDER" class="img-zoomable cursor-zoom-in float-right ml-8 mb-6 w-5/12 max-w-sm rounded-lg shadow-md border {C_BORDER} hover:shadow-xl transition-shadow duration-300">
              <div class="space-y-4">
                 </div>
           </div>
@@ -334,7 +334,6 @@ def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
 # </html>
 # """
 
-
 HTML_PLAYER_SHELL = """
 <!DOCTYPE html>
 <html lang="en">
@@ -352,12 +351,9 @@ HTML_PLAYER_SHELL = """
         {custom_animation_css}
 
         /* --- REVEAL LOGIC --- */
-        /* By default, items are hidden */
         .reveal-item {{
-            /* Opacity 0 handled by custom_animation_css usually, but reinforcing here */
+            /* handled by custom_animation_css */
         }}
-        
-        /* IF 'Show All' is active, we override opacity to 1 forcedly */
         body.reveal-disabled .reveal-item {{
             opacity: 1 !important;
             transform: none !important;
@@ -366,9 +362,40 @@ HTML_PLAYER_SHELL = """
         }}
 
         /* --- LAYOUT UTILS --- */
-        .sidebar-expanded {{ width: 250px; }}
+        .sidebar-expanded {{ width: 230px; }}
         .sidebar-collapsed {{ width: 100px; }}
         
+        /* --- IMAGE ZOOM STYLES --- */
+        #zoom-backdrop {{
+            position: fixed; inset: 0;
+            /* Changed background to white with transparency */
+            background: rgba(255, 255, 255, 0.75); 
+            z-index: 9990;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            /* Increased blur for frosted glass effect */
+            backdrop-filter: blur(10px);
+        }}
+        #zoom-backdrop.active {{ opacity: 1; pointer-events: auto; }}
+        
+        /* Target ALL images inside the main card automatically */
+        main img {{
+            cursor: zoom-in !important;  /* Force the icon */
+            position: relative;          /* Prepare for z-index */
+            z-index: 10;                 /* Lift image ABOVE invisible text blocks */
+            display: inline-block;       /* Solid hit-area */
+            transition: transform 0.2s;
+        }}
+        main img:hover {{
+            transform: scale(1.02);
+        }}
+
+        .img-zoomed {{
+            cursor: zoom-out !important;
+            z-index: 9999 !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            border-radius: 8px;
+        }}
+
         ::-webkit-scrollbar {{ width: 8px; }}
         ::-webkit-scrollbar-track {{ background: transparent; }}
         ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
@@ -376,14 +403,14 @@ HTML_PLAYER_SHELL = """
 </head>
 <body class="bg-slate-100 min-h-screen flex overflow-hidden">
 
+    <div id="zoom-backdrop" onclick="closeAllZooms()"></div>
+
     <aside class="bg-gray-900 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-50 shadow-2xl sidebar-expanded" id="sidebar">
         <div class="p-6 flex items-center gap-3 border-b border-gray-700 h-20">
             <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold">AI</div>
             <span class="font-bold text-lg tracking-wide sidebar-text">Controls</span>
         </div>
-
         <div class="p-6 flex-1 overflow-y-auto space-y-8">
-            
             <div>
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Layout Style</h3>
                 <div class="flex flex-col gap-2">
@@ -397,7 +424,6 @@ HTML_PLAYER_SHELL = """
                     </button>
                 </div>
             </div>
-
             <div>
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Animation</h3>
                 <div class="flex flex-col gap-2">
@@ -411,13 +437,11 @@ HTML_PLAYER_SHELL = """
                     </button>
                 </div>
             </div>
-            
             <div class="pt-8 border-t border-gray-800 sidebar-text">
                 <div class="text-xs text-gray-500 mb-2">PROGRESS</div>
                 <div class="text-2xl font-bold text-indigo-400" id="progress-pct">0%</div>
             </div>
         </div>
-
         <button onclick="toggleSidebar()" class="p-4 bg-gray-800 hover:bg-gray-700 border-t border-gray-700 flex justify-center">
              <i class="fas fa-bars"></i>
         </button>
@@ -428,7 +452,7 @@ HTML_PLAYER_SHELL = """
         <header class="bg-white/90 backdrop-blur sticky top-0 z-40 px-8 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm">
             <div class="flex items-center gap-4">
                  <img src="{logo_image}" class="h-10 w-auto object-contain" alt="Logo">
-                 <h1 class="text-xl font-bold text-gray-800">Course Roadmap</h1>
+                 <h1 class="text-xl font-bold text-gray-800">Course Viewer</h1>
             </div>
             <div id="slide-counter" class="text-sm font-bold text-gray-400"></div>
         </header>
@@ -444,39 +468,113 @@ HTML_PLAYER_SHELL = """
 
     <script>
         const SLIDES = {js_slides_data};
-        
-        // --- APP STATE ---
-        const state = {{
-            layout: 'vertical', // 'vertical' or 'horizontal'
-            reveal: 'click',    // 'click' or 'all'
-            currentSlideIdx: 0
-        }};
-
-        // --- DOM ELEMENTS ---
+        const state = {{ layout: 'vertical', reveal: 'click', currentSlideIdx: 0 }};
         const container = document.getElementById('app-container');
         const scrollContainer = document.getElementById('main-scroll-container');
         const nextBtn = document.getElementById('float-next-btn');
+        const backdrop = document.getElementById('zoom-backdrop');
 
-        // --- INITIALIZATION ---
-        window.onload = () => {{
-            renderApp();
-            updateButtonStyles();
-        }};
+        window.onload = () => {{ renderApp(); updateButtonStyles(); }};
 
-        // --- SETTINGS CONTROLLER ---
+        // --- ROBUST ZOOM LOGIC ---
+        // 1. Listen for clicks on ANY image inside the main container
+        document.addEventListener('click', (e) => {{
+            // Check if user clicked an IMG tag inside our main content
+            if (e.target.tagName === 'IMG' && e.target.closest('main')) {{
+                toggleZoom(e.target);
+                e.stopPropagation(); // Stop the click from triggering "Next Slide"
+            }}
+        }});
+
+        function toggleZoom(img) {{
+            const isZoomed = img.classList.contains('img-zoomed');
+            
+            if (isZoomed) {{
+                // ZOOM OUT
+                img.classList.remove('img-zoomed');
+                backdrop.classList.remove('active');
+                
+                const placeholder = img.previousElementSibling;
+                if (placeholder && placeholder.classList.contains('zoom-placeholder')) {{
+                    const rect = placeholder.getBoundingClientRect();
+                    
+                    // Animate back to original spot
+                    img.style.transform = 'none';
+                    img.style.top = rect.top + 'px';
+                    img.style.left = rect.left + 'px';
+                    img.style.width = rect.width + 'px';
+                    img.style.height = rect.height + 'px';
+                    
+                    setTimeout(() => {{
+                        img.style.position = '';
+                        img.style.top = '';
+                        img.style.left = '';
+                        img.style.width = '';
+                        img.style.height = '';
+                        img.style.zIndex = '';
+                        img.style.transition = '';
+                        placeholder.remove();
+                    }}, 300);
+                }}
+            }} else {{
+                // ZOOM IN
+                const rect = img.getBoundingClientRect();
+                const computedStyle = window.getComputedStyle(img);
+                
+                // 1. Create Placeholder
+                const placeholder = document.createElement('div');
+                placeholder.className = 'zoom-placeholder';
+                placeholder.style.width = rect.width + 'px';
+                placeholder.style.height = rect.height + 'px';
+                placeholder.style.float = computedStyle.float; 
+                placeholder.style.marginBottom = computedStyle.marginBottom;
+                placeholder.style.marginLeft = computedStyle.marginLeft;
+                placeholder.style.marginRight = computedStyle.marginRight;
+                
+                img.parentNode.insertBefore(placeholder, img);
+                
+                // 2. Fix image position
+                img.style.position = 'fixed';
+                img.style.top = rect.top + 'px';
+                img.style.left = rect.left + 'px';
+                img.style.width = rect.width + 'px';
+                img.style.height = rect.height + 'px';
+                img.style.zIndex = '9999';
+                img.style.transition = 'all 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
+                
+                // Force Reflow
+                void img.offsetWidth;
+                
+                // 3. Animate to Center
+                img.classList.add('img-zoomed');
+                img.style.top = '50%';
+                img.style.left = '50%';
+                img.style.transform = 'translate(-50%, -50%)';
+                // Reset sizes to natural or max screen size
+                img.style.width = 'auto';
+                img.style.height = 'auto';
+                img.style.maxWidth = '90vw';
+                img.style.maxHeight = '90vh';
+                img.style.margin = '0';
+                
+                backdrop.classList.add('active');
+            }}
+        }}
+        
+        function closeAllZooms() {{
+            const zoomed = document.querySelector('.img-zoomed');
+            if (zoomed) toggleZoom(zoomed);
+        }}
+
+        // --- RENDER & SETTINGS ---
         function setMode(type, value) {{
             state[type] = value;
             updateButtonStyles();
-            
-            if (type === 'layout') {{
-                renderApp(); // Re-render HTML structure
-            }} else if (type === 'reveal') {{
-                toggleRevealClass(); // Just toggle CSS
-            }}
+            if (type === 'layout') renderApp();
+            if (type === 'reveal') toggleRevealClass();
         }}
 
         function updateButtonStyles() {{
-            // Helper to toggle active classes on sidebar buttons
             const setActive = (id, isActive) => {{
                 const el = document.getElementById(id);
                 if (isActive) {{
@@ -487,12 +585,10 @@ HTML_PLAYER_SHELL = """
                     el.classList.add('text-gray-400');
                 }}
             }};
-
             setActive('btn-vertical', state.layout === 'vertical');
             setActive('btn-horizontal', state.layout === 'horizontal');
             setActive('btn-click', state.reveal === 'click');
             setActive('btn-all', state.reveal === 'all');
-            
             toggleRevealClass();
         }}
 
@@ -506,22 +602,15 @@ HTML_PLAYER_SHELL = """
             }}
         }}
 
-        // --- RENDER ENGINE ---
         function renderApp() {{
-            container.innerHTML = ''; // Clear current content
-            
-            if (state.layout === 'vertical') {{
-                renderVerticalLayout();
-            }} else {{
-                renderHorizontalLayout();
-            }}
+            container.innerHTML = '';
+            if (state.layout === 'vertical') renderVerticalLayout();
+            else renderHorizontalLayout();
         }}
 
         function renderVerticalLayout() {{
-            // Render ONE big card containing all sections
             const card = document.createElement('main');
             card.className = "bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden";
-            
             let fullHtml = '';
             SLIDES.forEach((slide, index) => {{
                 const divider = index === 0 ? '' : '<hr class="my-12 border-gray-100">';
@@ -538,21 +627,15 @@ HTML_PLAYER_SHELL = """
                     </section>
                 `;
             }});
-            
             card.innerHTML = fullHtml;
             container.appendChild(card);
-            
-            // Clean up reveals
             document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
         }}
 
         function renderHorizontalLayout() {{
-            // Render ONLY the current slide as a centered card
             const slide = SLIDES[state.currentSlideIdx];
-            
             const card = document.createElement('main');
             card.className = "bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden p-12 min-h-[600px] flex flex-col animation-fade";
-            
             card.innerHTML = `
                 <div class="border-b border-gray-100 pb-6 mb-6 flex justify-between items-center">
                     <h2 class="text-3xl font-bold {header_color}">${{slide.title}}</h2>
@@ -566,20 +649,14 @@ HTML_PLAYER_SHELL = """
                      <div class="text-xs text-gray-300 self-center">Use Spacebar or Next Button</div>
                 </div>
             `;
-            
             container.appendChild(card);
-            
-            // Clean up reveals (only within this card)
             if (state.reveal === 'click') {{
                  card.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
             }}
         }}
 
-        // --- ACTION LOGIC ---
-        
         function handleMainAction() {{
             if (state.reveal === 'click') {{
-                // Try to find a hidden item first
                 const hiddenItem = container.querySelector('.reveal-item:not(.visible)');
                 if (hiddenItem) {{
                     hiddenItem.classList.add('visible');
@@ -588,14 +665,8 @@ HTML_PLAYER_SHELL = """
                     return;
                 }}
             }}
-            
-            // If no hidden items (or we are in 'Show All' mode)
-            if (state.layout === 'horizontal') {{
-                nextSlide();
-            }} else {{
-                // Vertical mode, just scroll down slightly
-                scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
-            }}
+            if (state.layout === 'horizontal') nextSlide();
+            else scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
         }}
 
         function nextSlide() {{
@@ -603,9 +674,7 @@ HTML_PLAYER_SHELL = """
                 state.currentSlideIdx++;
                 renderApp();
                 scrollContainer.scrollTop = 0;
-            }} else {{
-                alert("End of Course!");
-            }}
+            }} else {{ alert("End of Course!"); }}
         }}
 
         function prevSlide() {{
@@ -619,14 +688,12 @@ HTML_PLAYER_SHELL = """
         function updateProgress() {{
             const total = document.querySelectorAll('.reveal-item').length;
             const visible = document.querySelectorAll('.reveal-item.visible').length;
-            
             if (total > 0) {{
                 const pct = Math.round((visible / total) * 100);
                 document.getElementById('progress-pct').innerText = pct + "%";
             }}
         }}
 
-        // --- SIDEBAR UI ---
         function toggleSidebar() {{
             const sb = document.getElementById('sidebar');
             if (sb.classList.contains('sidebar-expanded')) {{
@@ -640,17 +707,11 @@ HTML_PLAYER_SHELL = """
             }}
         }}
 
-        // --- KEYBOARD SUPPORT ---
         document.addEventListener('keydown', (e) => {{
-            if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{
-                e.preventDefault();
-                handleMainAction();
-            }}
-            if (e.key === "ArrowLeft" && state.layout === 'horizontal') {{
-                prevSlide();
-            }}
+            if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{ e.preventDefault(); handleMainAction(); }}
+            if (e.key === "ArrowLeft" && state.layout === 'horizontal') prevSlide();
+            if (e.key === "Escape") closeAllZooms();
         }});
-
     </script>
 </body>
 </html>
