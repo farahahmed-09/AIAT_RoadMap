@@ -117,7 +117,6 @@ def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
     return prompt
 
 # ================= THE SINGLE PAGE APPLICATION SHELL =================
-
 HTML_PLAYER_SHELL = """
 <!DOCTYPE html>
 <html lang="en">
@@ -128,54 +127,122 @@ HTML_PLAYER_SHELL = """
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* [STYLES REMAIN UNCHANGED - CUT FOR BREVITY] */
-        :root {{ --theme-color: #4f46e5; }}
+        :root {{
+            --theme-color: #4f46e5; 
+        }}
+
         html {{ scroll-behavior: smooth; }}
-        body {{ font-family: 'Segoe UI', Roboto, sans-serif; transition: background 0.3s, color 0.3s; }}
+        body {{ 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            transition: background 0.3s, color 0.3s; 
+        }}
+        
         .theme-bg {{ background-color: var(--theme-color) !important; }}
         .theme-text {{ color: var(--theme-color) !important; }}
         .theme-border {{ border-color: var(--theme-color) !important; }}
-        main h1, main h2, main h3, main h4, main strong, main b {{ color: var(--theme-color) !important; }}
-        main ul li::marker {{ color: var(--theme-color) !important; }}
+        
+        main h1, main h2, main h3, main h4, main strong, main b {{
+            color: var(--theme-color) !important;
+        }}
+        main ul li::marker {{
+            color: var(--theme-color) !important;
+        }}
+
         body.dark-mode {{ background-color: #0f172a; color: #cbd5e1; }}
-        body.dark-mode main {{ background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }}
+        body.dark-mode main {{ 
+            background-color: #1e293b !important; 
+            border-color: #334155 !important; 
+            color: #e2e8f0 !important;
+        }}
         body.dark-mode p, body.dark-mode li {{ color: #cbd5e1 !important; }}
         body.dark-mode .bg-gray-100 {{ background-color: #334155 !important; color: #cbd5e1 !important; }}
         body.dark-mode hr {{ border-color: #334155 !important; }}
         body.dark-mode #zoom-backdrop {{ background: rgba(0, 0, 0, 0.85); }}
+
         {custom_animation_css}
-        body.reveal-disabled .reveal-item {{ opacity: 1 !important; transform: none !important; filter: none !important; pointer-events: auto !important; }}
-        .editing-mode {{ border: 2px dashed var(--theme-color); padding: 10px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.5); outline: none; cursor: text; }}
+
+        body.reveal-disabled .reveal-item {{
+            opacity: 1 !important; transform: none !important; filter: none !important; pointer-events: auto !important;
+        }}
+
+        .editing-mode {{
+            border: 2px dashed var(--theme-color); padding: 10px; border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.5); outline: none; cursor: text;
+        }}
         body.dark-mode .editing-mode {{ background-color: rgba(0, 0, 0, 0.2); }}
+
         .sidebar-expanded {{ width: 220px; }}
         .sidebar-collapsed {{ width: 120px; }}
-        #zoom-backdrop {{ position: fixed; inset: 0; background: rgba(255, 255, 255, 0.75); z-index: 9990; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(10px); }}
+        
+        #zoom-backdrop {{
+            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.75); z-index: 9990;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(10px);
+        }}
         #zoom-backdrop.active {{ opacity: 1; pointer-events: auto; }}
-        main img {{ cursor: zoom-in !important; position: relative; z-index: 10; display: inline-block; transition: transform 0.2s; border-radius: 8px; }}
+        
+        main img {{
+            cursor: zoom-in !important; position: relative; z-index: 10; display: inline-block; 
+            transition: transform 0.2s; border-radius: 8px;
+        }}
         main img:hover {{ transform: scale(1.02); z-index: 20; }}
-        .img-zoomed {{ cursor: zoom-out !important; z-index: 9999 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }}
+        .img-zoomed {{
+            cursor: zoom-out !important; z-index: 9999 !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        }}
+
         ::-webkit-scrollbar {{ width: 8px; }}
         ::-webkit-scrollbar-track {{ background: transparent; }}
         ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
         body.dark-mode ::-webkit-scrollbar-thumb {{ background: #475569; }}
-        #ai-edit-modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }}
+
+        #ai-edit-modal {{
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }}
         #ai-edit-modal.active {{ display: flex; }}
-        .ai-modal-content {{ background: white; width: 500px; max-width: 90%; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #e0e0e0; font-family: sans-serif; animation: popIn 0.3s ease-out; }}
+
+        .ai-modal-content {{
+            background: white; width: 500px; max-width: 90%; padding: 25px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #e0e0e0; font-family: sans-serif; animation: popIn 0.3s ease-out;
+        }}
         body.dark-mode .ai-modal-content {{ background: #1e293b; border-color: #334155; color: #fff; }}
+
         @keyframes popIn {{ from {{ transform: scale(0.9); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
+
         .ai-modal-header {{ font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }}
-        .ai-input-area {{ width: 100%; height: 100px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; resize: none; box-sizing: border-box; margin-bottom: 15px; transition: border 0.2s; }}
+        .ai-input-area {{
+            width: 100%; height: 100px; padding: 12px; border: 1px solid #ccc; border-radius: 8px;
+            font-size: 14px; resize: none; box-sizing: border-box; margin-bottom: 15px; transition: border 0.2s;
+        }}
         body.dark-mode .ai-input-area {{ background: #0f172a; border-color: #475569; color: white; }}
         .ai-input-area:focus {{ border-color: var(--theme-color); outline: none; }}
+        
         .ai-actions {{ display: flex; justify-content: flex-end; gap: 10px; }}
         .btn-ai-cancel {{ padding: 8px 16px; border: none; background: transparent; color: #666; cursor: pointer; font-weight: 600; }}
         body.dark-mode .btn-ai-cancel {{ color: #aaa; }}
-        .btn-ai-generate {{ padding: 8px 20px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; transition: transform 0.1s; }}
+        .btn-ai-generate {{
+            padding: 8px 20px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px; transition: transform 0.1s;
+        }}
         .btn-ai-generate:active {{ transform: scale(0.98); }}
         .btn-ai-generate:disabled {{ opacity: 0.7; cursor: not-allowed; }}
-        .ai-magic-btn {{ background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; margin-left: 5px; }}
-        .ai-magic-btn:hover {{ transform: scale(1.1) rotate(10deg); }}
-        .loading-spinner {{ width: 16px; height: 16px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }}
+        
+        .ai-magic-btn {{
+            background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; margin-left: 5px;
+        }}
+        .ai-napkin-btn {{
+             background: linear-gradient(135deg, #10b981, #34d399); color: white; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; margin-left: 5px;
+        }}
+        .ai-magic-btn:hover, .ai-napkin-btn:hover {{ transform: scale(1.1) rotate(10deg); }}
+
+        .loading-spinner {{
+            width: 16px; height: 16px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;
+        }}
         @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
     </style>
 </head>
@@ -186,16 +253,16 @@ HTML_PLAYER_SHELL = """
     <div id="ai-edit-modal">
         <div class="ai-modal-content">
             <div class="ai-modal-header">
-                <span><i class="fas fa-magic" style="margin-right:8px; color: #8b5cf6;"></i> AI Edit</span>
+                <span id="ai-modal-title"><i class="fas fa-magic" style="margin-right:8px; color: #8b5cf6;"></i> AI Edit</span>
                 <button onclick="closeAIModal()" style="background:none; border:none; cursor:pointer; font-size:20px; color:#999;">&times;</button>
             </div>
-            <p style="margin-bottom: 10px; font-size: 13px; opacity: 0.7;">
-                Describe how you want to change this slide. You will be asked for your API key securely.
+            <p id="ai-modal-desc" style="margin-bottom: 10px; font-size: 13px; opacity: 0.7;">
+                Describe your changes.
             </p>
             <textarea id="ai-prompt-input" class="ai-input-area" placeholder="Enter your instructions here..."></textarea>
             <div class="ai-actions">
                 <button class="btn-ai-cancel" onclick="closeAIModal()">Cancel</button>
-                <button class="btn-ai-generate" onclick="executeAIGenerate()" id="btn-ai-submit">
+                <button class="btn-ai-generate" onclick="handleAIModalSubmit()" id="btn-ai-submit">
                     <span>Generate</span> <i class="fas fa-wand-magic-sparkles"></i>
                 </button>
             </div>
@@ -277,8 +344,7 @@ HTML_PLAYER_SHELL = """
             <div id="slide-counter" class="text-sm font-bold text-gray-400"></div>
         </header>
 
-        <div id="app-container" class="max-w-5xl mx-auto px-6 py-10 pb-32 min-h-full transition-colors duration-300">
-            </div>
+        <div id="app-container" class="max-w-5xl mx-auto px-6 py-10 pb-32 min-h-full transition-colors duration-300"></div>
 
         <div class="fixed bottom-10 right-10 z-50 flex gap-3">
             <button id="float-prev-btn" onclick="handleBackAction()" class="text-gray-500 bg-white/80 backdrop-blur px-6 py-4 rounded-full font-bold shadow-lg hover:bg-white hover:scale-105 transition-all flex items-center gap-2 border border-gray-200 dark:bg-slate-800/80 dark:text-gray-300 dark:border-slate-600">
@@ -294,7 +360,6 @@ HTML_PLAYER_SHELL = """
         // --- DATA INITIALIZATION ---
         const ORIGINAL_SLIDES = {js_slides_data};
         let SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES)); 
-        // NOTE: API KEY IS NOT STORED HERE.
         
         const state = {{ layout: 'vertical', reveal: 'click', currentSlideIdx: 0, darkMode: false, theme: '#6366f1' }};
         const container = document.getElementById('app-container');
@@ -327,6 +392,7 @@ HTML_PLAYER_SHELL = """
             const contentDiv = document.getElementById(`content-${{index}}`);
             const editBtn = document.getElementById(`edit-btn-${{index}}`);
             const aiBtn = document.getElementById(`ai-btn-${{index}}`);
+            const napkinBtn = document.getElementById(`napkin-btn-${{index}}`);
             const saveBtn = document.getElementById(`save-btn-${{index}}`);
             
             if (contentDiv) {{
@@ -336,6 +402,7 @@ HTML_PLAYER_SHELL = """
                 
                 if(editBtn) editBtn.classList.add('hidden');
                 if(aiBtn) aiBtn.classList.add('hidden');
+                if(napkinBtn) napkinBtn.classList.add('hidden');
                 if(saveBtn) saveBtn.classList.remove('hidden');
                 
                 if (state.reveal !== 'all') {{
@@ -348,16 +415,20 @@ HTML_PLAYER_SHELL = """
             const contentDiv = document.getElementById(`content-${{index}}`);
             const editBtn = document.getElementById(`edit-btn-${{index}}`);
             const aiBtn = document.getElementById(`ai-btn-${{index}}`);
+            const napkinBtn = document.getElementById(`napkin-btn-${{index}}`);
             const saveBtn = document.getElementById(`save-btn-${{index}}`);
 
             if (contentDiv) {{
                 const newHtml = contentDiv.innerHTML;
                 SLIDES[index].html = newHtml;
                 persistChanges();
+                
                 contentDiv.contentEditable = "false";
                 contentDiv.classList.remove('editing-mode');
+                
                 if(editBtn) editBtn.classList.remove('hidden');
                 if(aiBtn) aiBtn.classList.remove('hidden');
+                if(napkinBtn) napkinBtn.classList.remove('hidden');
                 if(saveBtn) saveBtn.classList.add('hidden');
             }}
         }}
@@ -374,11 +445,31 @@ HTML_PLAYER_SHELL = """
             }}
         }}
 
-        // --- AI EDITING LOGIC (SECURE) ---
+        // --- AI & NAPKIN EDITING LOGIC ---
         let currentEditingIndex = -1;
+        let activeModalType = 'text'; // 'text' (Gemini) or 'image' (Napkin)
 
         function openAIModal(index) {{
             currentEditingIndex = index;
+            activeModalType = 'text';
+            
+            document.getElementById('ai-modal-title').innerHTML = '<i class="fas fa-magic" style="margin-right:8px; color: #8b5cf6;"></i> AI Edit';
+            document.getElementById('ai-modal-desc').innerText = 'Describe how you want to change this slide text (e.g. "Make it shorter").';
+            document.getElementById('ai-prompt-input').placeholder = "Enter your instructions here...";
+            
+            document.getElementById('ai-edit-modal').classList.add('active');
+            document.getElementById('ai-prompt-input').value = "";
+            document.getElementById('ai-prompt-input').focus();
+        }}
+
+        function openNapkinModal(index) {{
+            currentEditingIndex = index;
+            activeModalType = 'image';
+
+            document.getElementById('ai-modal-title').innerHTML = '<i class="fas fa-image" style="margin-right:8px; color: #10b981;"></i> Napkin Visual Gen';
+            document.getElementById('ai-modal-desc').innerText = 'Enter the text you want to convert into a visual diagram.';
+            document.getElementById('ai-prompt-input').placeholder = "e.g., 'A flow chart showing the process of photosynthesis'";
+
             document.getElementById('ai-edit-modal').classList.add('active');
             document.getElementById('ai-prompt-input').value = "";
             document.getElementById('ai-prompt-input').focus();
@@ -388,24 +479,25 @@ HTML_PLAYER_SHELL = """
             document.getElementById('ai-edit-modal').classList.remove('active');
             currentEditingIndex = -1;
         }}
+        
+        function handleAIModalSubmit() {{
+            if(activeModalType === 'text') {{
+                executeAIGenerate();
+            }} else {{
+                executeNapkinGenerate();
+            }}
+        }}
 
+        // --- GEMINI TEXT GENERATION ---
         async function executeAIGenerate() {{
             const promptText = document.getElementById('ai-prompt-input').value;
             if(!promptText) return;
 
-            // 1. SECURELY ASK FOR KEY
-            // using window.prompt to keep it out of DOM and strictly in transient memory
-            let tempKey = window.prompt("Please enter your Gemini API Key for this request:\\n(It will be deleted from memory immediately after use)");
-
-            if (!tempKey || tempKey.trim() === "") {{
-                alert("API Key is required to use AI features.");
-                return;
-            }}
+            let tempKey = window.prompt("Please enter your Gemini API Key:\\n(It will be deleted from memory immediately after use)");
+            if (!tempKey) return;
 
             const submitBtn = document.getElementById('btn-ai-submit');
             const originalBtnContent = submitBtn.innerHTML;
-            
-            // Set Loading State
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<div class="loading-spinner"></div> Generating...';
 
@@ -420,92 +512,167 @@ HTML_PLAYER_SHELL = """
                     currentHtml = currentHtml.replace(imgRegex, '');
                 }}
                 
-                // 2. Construct Payload
-                const systemPrompt = `
-                You are an expert HTML editor for educational slides.
-                Task: Update the provided HTML based on the user's request.
-                
-                CRITICAL STYLING RULES:
-                - You MUST use these exact Tailwind classes for consistency:
-                  * Headers (h1-h3): "text-2xl font-bold {header_color} mb-3 mt-6"
-                  * Paragraphs (p): "reveal-item text-lg {body_color} leading-relaxed mb-4"
-                  * List Items (li): "reveal-item text-lg {body_color}"
-                  * Lists (ul): "list-disc pl-5 space-y-2 mb-4"
-                
-                Rules:
-                1. ALWAYS wrap every <p>, <li>, or header in the class 'reveal-item'.
-                2. Do NOT output markdown code blocks. Output ONLY raw HTML.
-                3. Maintain the image placeholder if it exists.
-                4. Be concise and professional.
-                `;
+                const systemPrompt = `You are an expert HTML editor. Task: Update provided HTML. Rules: Maintain 'reveal-item' classes. Output raw HTML only.`;
+                const userMessage = `CURRENT HTML: ${{currentHtml}}\\nUSER REQUEST: ${{promptText}}\\nOUTPUT NEW HTML:`;
 
-                const userMessage = `
-                CURRENT HTML:
-                ${{currentHtml}}
-                
-                USER REQUEST:
-                ${{promptText}}
-                
-                OUTPUT NEW HTML:
-                `;
-
-                const payload = {{
-                    contents: [{{
-                        parts: [{{ text: systemPrompt + "\\n" + userMessage }}]
-                    }}]
-                }};
-
-                // 3. Call API using the user provided key
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${{tempKey}}`, {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({{ contents: [{{ parts: [{{ text: systemPrompt + "\\n" + userMessage }}] }}] }})
                 }});
 
-                // 4. MEMORY CLEANUP: Delete key immediately
-                tempKey = null;
-
+                tempKey = null; // Security wipe
                 const data = await response.json();
-                
-                if (data.error) {{
-                    throw new Error(data.error.message);
-                }}
+                if (data.error) throw new Error(data.error.message);
 
                 let newHtml = data.candidates[0].content.parts[0].text;
                 newHtml = newHtml.replace(/```html/g, '').replace(/```/g, '').trim();
 
                 if (savedImgTag) {{
-                    if (newHtml.includes('')) {{
-                        newHtml = newHtml.replace('', savedImgTag);
-                    }} else {{
+                    if (!newHtml.includes('<img')) {{
                         newHtml = '<div class="clearfix mb-8">' + savedImgTag + '</div>' + newHtml;
                     }}
                 }}
 
                 SLIDES[currentEditingIndex].html = newHtml;
                 persistChanges();
-                
-                const contentDiv = document.getElementById(`content-${{currentEditingIndex}}`);
-                if(contentDiv) {{
-                    contentDiv.innerHTML = newHtml;
-                    if(state.reveal !== 'click') {{
-                        contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
-                    }}
-                }}
-
+                refreshSlideView(currentEditingIndex);
                 closeAIModal();
 
             }} catch (err) {{
                 alert("AI Generation Failed: " + err.message);
             }} finally {{
-                // Double check cleanup
-                tempKey = null; 
+                tempKey = null;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
             }}
         }}
 
-        // --- THEME, DARK MODE, ZOOM, RENDER (Unchanged) ---
+        // --- NAPKIN IMAGE GENERATION ---
+        async function executeNapkinGenerate() {{
+            const promptText = document.getElementById('ai-prompt-input').value;
+            if(!promptText) return;
+
+            let tempKey = window.prompt("Please enter your Napkin AI API Key:\\n(It will be deleted from memory immediately after use)");
+            if (!tempKey) return;
+
+            const submitBtn = document.getElementById('btn-ai-submit');
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Visualizing...';
+
+            try {{
+                // 1. Send Generation Request
+                const genRes = await fetch("https://api.napkin.ai/v1/visual", {{
+                    method: 'POST',
+                    headers: {{ 'Authorization': 'Bearer ' + tempKey, 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        format: "svg",
+                        content: promptText,
+                        language: "en-US",
+                        number_of_visuals: 1,
+                        transparent_background: true,
+                        color_mode: "light",
+                        width: 1000,
+                        height: 1000
+                    }})
+                }});
+                
+                if (!genRes.ok) throw new Error("Napkin Request Failed: " + genRes.statusText);
+                const genData = await genRes.json();
+                const requestId = genData.id;
+
+                // 2. Poll for Status
+                let fileId = null;
+                for (let i = 0; i < 30; i++) {{ // Try 30 times
+                    await new Promise(r => setTimeout(r, 2000)); // Sleep 2s
+                    const statusRes = await fetch(`https://api.napkin.ai/v1/visual/${{requestId}}/status`, {{
+                        headers: {{ 'Authorization': 'Bearer ' + tempKey }}
+                    }});
+                    const statusData = await statusRes.json();
+                    
+                    if (statusData.status === 'completed') {{
+                        if (statusData.generated_files && statusData.generated_files.length > 0) {{
+                            const url = statusData.generated_files[0].url;
+                            fileId = url.substring(url.lastIndexOf('/') + 1);
+                        }} else {{
+                            fileId = statusData.visual_id;
+                        }}
+                        break;
+                    }} else if (statusData.status === 'failed' || statusData.status === 'error') {{
+                        throw new Error("Napkin generation failed.");
+                    }}
+                }}
+
+                if(!fileId) throw new Error("Timed out waiting for Napkin.");
+
+                // 3. Download the SVG Content
+                const downloadRes = await fetch(`https://api.napkin.ai/v1/visual/${{requestId}}/file/${{fileId}}`, {{
+                    headers: {{ 'Authorization': 'Bearer ' + tempKey, 'Accept': 'image/svg+xml' }}
+                }});
+                
+                if (!downloadRes.ok) throw new Error("Failed to download image.");
+                const svgBlob = await downloadRes.blob();
+                
+                // 4. Convert Blob to Base64
+                const reader = new FileReader();
+                reader.readAsDataURL(svgBlob); 
+                reader.onloadend = function() {{
+                    const base64data = reader.result;
+                    
+                    // 5. Inject into Slide
+                    injectImageIntoSlide(currentEditingIndex, base64data);
+                    
+                    // Cleanup
+                    tempKey = null;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                    closeAIModal();
+                }}
+
+            }} catch (err) {{
+                tempKey = null;
+                alert("Napkin Error: " + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+            }}
+        }}
+
+        function injectImageIntoSlide(index, base64Data) {{
+            let html = SLIDES[index].html;
+            
+            // If there's an existing img with standard classes, replace it
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const existingImg = doc.querySelector('img.img-zoomable') || doc.querySelector('img.float-right');
+
+            if (existingImg) {{
+                existingImg.src = base64Data;
+                SLIDES[index].html = doc.body.innerHTML;
+            }} else {{
+                // If no image exists, prepend standard layout
+                const newImageHtml = `
+                <div class="clearfix mb-8">
+                     <img src="${{base64Data}}" class="img-zoomable cursor-zoom-in float-right ml-8 mb-6 w-5/12 max-w-sm rounded-lg shadow-md border hover:shadow-xl transition-shadow duration-300">
+                </div>`;
+                SLIDES[index].html = newImageHtml + SLIDES[index].html;
+            }}
+            
+            persistChanges();
+            refreshSlideView(index);
+        }}
+
+        function refreshSlideView(index) {{
+            const contentDiv = document.getElementById(`content-${{index}}`);
+            if(contentDiv) {{
+                contentDiv.innerHTML = SLIDES[index].html;
+                if(state.reveal !== 'click') {{
+                    contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
+                }}
+            }}
+        }}
+
+        // --- THEME, DARK MODE, RENDER ---
         function setTheme(colorHex) {{
             state.theme = colorHex;
             document.documentElement.style.setProperty('--theme-color', colorHex);
@@ -516,26 +683,22 @@ HTML_PLAYER_SHELL = """
             const dot = document.getElementById('dm-toggle-dot');
             const bg = document.getElementById('dm-toggle-bg');
             if (state.darkMode) {{
-                document.body.classList.add('dark-mode');
-                dot.style.transform = 'translateX(1.25rem)';
+                document.body.classList.add('dark-mode'); dot.style.transform = 'translateX(1.25rem)';
                 bg.classList.remove('bg-gray-700'); bg.classList.add('theme-bg'); bg.style.backgroundColor = state.theme;
             }} else {{
-                document.body.classList.remove('dark-mode');
-                dot.style.transform = 'translateX(0)';
+                document.body.classList.remove('dark-mode'); dot.style.transform = 'translateX(0)';
                 bg.classList.add('bg-gray-700'); bg.classList.remove('theme-bg'); bg.style.backgroundColor = '';
             }}
         }}
         document.addEventListener('click', (e) => {{
             if (e.target.tagName === 'IMG' && e.target.closest('main')) {{
-                toggleZoom(e.target);
-                e.stopPropagation();
+                toggleZoom(e.target); e.stopPropagation();
             }}
         }});
         function toggleZoom(img) {{
             const isZoomed = img.classList.contains('img-zoomed');
             if (isZoomed) {{
-                img.classList.remove('img-zoomed');
-                backdrop.classList.remove('active');
+                img.classList.remove('img-zoomed'); backdrop.classList.remove('active');
                 const placeholder = img.previousElementSibling;
                 if (placeholder && placeholder.classList.contains('zoom-placeholder')) {{
                     const rect = placeholder.getBoundingClientRect();
@@ -556,16 +719,15 @@ HTML_PLAYER_SHELL = """
                 img.style.width = rect.width + 'px'; img.style.height = rect.height + 'px';
                 img.style.zIndex = '9999'; img.style.transition = 'all 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
                 void img.offsetWidth;
-                img.classList.add('img-zoomed');
-                img.style.top = '50%'; img.style.left = '50%'; img.style.transform = 'translate(-50%, -50%)';
-                img.style.width = 'auto'; img.style.height = 'auto'; img.style.maxWidth = '90vw'; img.style.maxHeight = '90vh';
+                img.classList.add('img-zoomed'); img.style.top = '50%'; img.style.left = '50%';
+                img.style.transform = 'translate(-50%, -50%)'; img.style.width = 'auto'; img.style.height = 'auto';
+                img.style.maxWidth = '90vw'; img.style.maxHeight = '90vh';
                 backdrop.classList.add('active');
             }}
         }}
         function closeAllZooms() {{ const z = document.querySelector('.img-zoomed'); if(z) toggleZoom(z); }}
         function setMode(type, value) {{
-            state[type] = value;
-            updateButtonStyles();
+            state[type] = value; updateButtonStyles();
             if (type === 'layout') renderApp();
             if (type === 'reveal') toggleRevealClass();
         }}
@@ -580,10 +742,8 @@ HTML_PLAYER_SHELL = """
                     el.style.backgroundColor = ''; el.style.borderColor = '';
                 }}
             }};
-            setActive('btn-vertical', state.layout === 'vertical');
-            setActive('btn-horizontal', state.layout === 'horizontal');
-            setActive('btn-click', state.reveal === 'click');
-            setActive('btn-all', state.reveal === 'all');
+            setActive('btn-vertical', state.layout === 'vertical'); setActive('btn-horizontal', state.layout === 'horizontal');
+            setActive('btn-click', state.reveal === 'click'); setActive('btn-all', state.reveal === 'all');
             document.querySelectorAll('.theme-btn').forEach(btn => {{
                 const color = btn.getAttribute('data-color');
                 if (color === state.theme) {{
@@ -605,10 +765,8 @@ HTML_PLAYER_SHELL = """
                 prevIcon.className = (state.layout === 'horizontal') ? "fas fa-arrow-left" : "fas fa-arrow-up";
             }} else {{
                 document.body.classList.remove('reveal-disabled');
-                nextBtn.innerHTML = 'Next Step';
-                prevBtn.querySelector('span').innerText = 'Back';
-                nextIcon.className = "fas fa-chevron-down";
-                prevIcon.className = "fas fa-chevron-up";
+                nextBtn.innerHTML = 'Next Step'; prevBtn.querySelector('span').innerText = 'Back';
+                nextIcon.className = "fas fa-chevron-down"; prevIcon.className = "fas fa-chevron-up";
                 nextBtn.appendChild(nextIcon); 
             }}
         }}
@@ -616,8 +774,7 @@ HTML_PLAYER_SHELL = """
             container.innerHTML = '';
             if (state.layout === 'vertical') renderVerticalLayout();
             else renderHorizontalLayout();
-            updateButtonStyles();
-            updateProgress(); 
+            updateButtonStyles(); updateProgress(); 
         }}
         function renderVerticalLayout() {{
             const card = document.createElement('main');
@@ -637,8 +794,11 @@ HTML_PLAYER_SHELL = """
                                 <button id="edit-btn-${{index}}" onclick="toggleEdit(${{index}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Content">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button id="ai-btn-${{index}}" onclick="openAIModal(${{index}})" class="ai-magic-btn" title="AI Edit">
+                                <button id="ai-btn-${{index}}" onclick="openAIModal(${{index}})" class="ai-magic-btn" title="AI Text Edit">
                                     <i class="fas fa-wand-magic-sparkles"></i>
+                                </button>
+                                <button id="napkin-btn-${{index}}" onclick="openNapkinModal(${{index}})" class="ai-napkin-btn" title="Napkin Image Gen">
+                                    <i class="fas fa-image"></i>
                                 </button>
                                 <button id="save-btn-${{index}}" onclick="saveSlide(${{index}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
                                     <i class="fas fa-check"></i> Save
@@ -667,8 +827,11 @@ HTML_PLAYER_SHELL = """
                         <button id="edit-btn-${{idx}}" onclick="toggleEdit(${{idx}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Slide">
                             <i class="fas fa-pen"></i>
                         </button>
-                        <button id="ai-btn-${{idx}}" onclick="openAIModal(${{idx}})" class="ai-magic-btn" title="AI Edit">
+                        <button id="ai-btn-${{idx}}" onclick="openAIModal(${{idx}})" class="ai-magic-btn" title="AI Text Edit">
                             <i class="fas fa-wand-magic-sparkles"></i>
+                        </button>
+                        <button id="napkin-btn-${{idx}}" onclick="openNapkinModal(${{idx}})" class="ai-napkin-btn" title="Napkin Image Gen">
+                            <i class="fas fa-image"></i>
                         </button>
                         <button id="save-btn-${{idx}}" onclick="saveSlide(${{idx}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
                             <i class="fas fa-check"></i> Save
@@ -695,13 +858,11 @@ HTML_PLAYER_SHELL = """
             if (state.reveal === 'click') {{
                 const hiddenItem = container.querySelector('.reveal-item:not(.visible)');
                 if (hiddenItem) {{
-                    hiddenItem.classList.add('visible');
-                    hiddenItem.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                    hiddenItem.classList.add('visible'); hiddenItem.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
                     updateProgress(); return;
                 }}
             }}
-            if (state.layout === 'horizontal') nextSlide();
-            else scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
+            if (state.layout === 'horizontal') nextSlide(); else scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
         }}
         function handleBackAction() {{
             if (document.querySelector('.editing-mode')) return; 
@@ -709,16 +870,13 @@ HTML_PLAYER_SHELL = """
             if (state.reveal === 'click') {{
                 const visibleItems = Array.from(document.querySelectorAll('.reveal-item.visible'));
                 if (visibleItems.length > 0) {{
-                    const lastItem = visibleItems[visibleItems.length - 1];
-                    lastItem.classList.remove('visible');
-                    if (visibleItems.length > 1) {{
-                        visibleItems[visibleItems.length - 2].scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                    }} else {{ if(state.layout === 'horizontal') container.scrollIntoView({{behavior: 'smooth'}}); }}
+                    const lastItem = visibleItems[visibleItems.length - 1]; lastItem.classList.remove('visible');
+                    if (visibleItems.length > 1) {{ visibleItems[visibleItems.length - 2].scrollIntoView({{ behavior: 'smooth', block: 'center' }}); }} 
+                    else {{ if(state.layout === 'horizontal') container.scrollIntoView({{behavior: 'smooth'}}); }}
                     updateProgress(); return;
                 }}
             }}
-            if (state.layout === 'horizontal') prevSlide();
-            else scrollContainer.scrollBy({{ top: -300, behavior: 'smooth' }});
+            if (state.layout === 'horizontal') prevSlide(); else scrollContainer.scrollBy({{ top: -300, behavior: 'smooth' }});
         }}
         function nextSlide() {{
             if (state.currentSlideIdx < SLIDES.length - 1) {{ state.currentSlideIdx++; renderApp(); scrollContainer.scrollTop = 0; }} else {{ alert("End of Course!"); }}
@@ -733,15 +891,11 @@ HTML_PLAYER_SHELL = """
             }} else {{
                 const total = document.querySelectorAll('.reveal-item').length;
                 const visible = document.querySelectorAll('.reveal-item.visible').length;
-                if (total > 0) {{
-                    const pct = Math.round((visible / total) * 100);
-                    document.getElementById('progress-pct').innerText = pct + "%";
-                }}
+                if (total > 0) {{ const pct = Math.round((visible / total) * 100); document.getElementById('progress-pct').innerText = pct + "%"; }}
             }}
         }}
         function toggleSidebar() {{
-            const sb = document.getElementById('sidebar');
-            const icon = document.getElementById('sidebar-toggle-icon');
+            const sb = document.getElementById('sidebar'); const icon = document.getElementById('sidebar-toggle-icon');
             if (sb.classList.contains('sidebar-expanded')) {{
                 sb.classList.remove('sidebar-expanded'); sb.classList.add('sidebar-collapsed');
                 document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
