@@ -1,4 +1,3 @@
-
 import os
 import json
 import base64
@@ -25,7 +24,7 @@ INPUT_JSON_PATH = r"D:\AIAT_roadmap\output_parser\slides_plan.json"
 OUTPUT_DIR = r"D:\AIAT_roadmap\output_html"
 BACKGROUND_IMAGE_PATH = config["paths"]["background_image"]
 LOGO_IMAGE_PATH = config["paths"]["logo_image"]
-ANIMATION_PROMPT = config.get("animation", {}).get("style_prompt", "fade") # Default to fade
+ANIMATION_PROMPT = config.get("animation", {}).get("style_prompt", "fade") 
 
 # Extract Colors
 c = config["branding"]["colors"]
@@ -40,45 +39,28 @@ llm = ChatLiteLLM(model="gemini/gemini-2.5-flash", api_key=gemini_api_key)
 
 # ================= HELPER FUNCTIONS =================
 
-
 def encode_image_to_base64(image_path: str) -> str:
     if not image_path or not os.path.exists(image_path):
         return "" 
     try:
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-        
         ext = os.path.splitext(image_path)[1].lower()
-        
-        # --- MODIFIED SECTION START ---
-        if ext == ".svg":
-            mime_type = "image/svg+xml"
-        elif ext == ".png":
-            mime_type = "image/png"
-        elif ext in [".jpg", ".jpeg"]:
-            mime_type = "image/jpeg"
-        else:
-            # Fallback for other types like webp or gif
-            mime_type = "image/octet-stream" 
-        # --- MODIFIED SECTION END ---
-
+        if ext == ".svg": mime_type = "image/svg+xml"
+        elif ext == ".png": mime_type = "image/png"
+        elif ext in [".jpg", ".jpeg"]: mime_type = "image/jpeg"
+        else: mime_type = "image/octet-stream" 
         return f"data:{mime_type};base64,{encoded_string}"
     except Exception as e:
         print(f"Warning: Could not encode image at {image_path}: {e}")
         return ""
 
 def determine_css_animation(prompt_text):
-    """
-    Decides the CSS for the 'reveal' class based on user prompt.
-    """
     prompt_text = prompt_text.lower()
-    
-    # Default: Professional Fade
     css = """
         .reveal-item { opacity: 0; transition: opacity 0.8s ease-in-out; }
         .reveal-item.visible { opacity: 1; }
     """
-    
     if "slide" in prompt_text or "up" in prompt_text:
         css = """
         .reveal-item { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
@@ -94,9 +76,7 @@ def determine_css_animation(prompt_text):
         .reveal-item { opacity: 0; transform: scale(1.1); filter: blur(4px); transition: all 0.7s ease; }
         .reveal-item.visible { opacity: 1; transform: scale(1); filter: blur(0); }
         """
-    
     return css
-
 
 def generate_content_prompt(slide_data: Dict, has_slide_img: bool) -> str:
     sections = slide_data.get('sections', [])
@@ -247,11 +227,165 @@ HTML_PLAYER_SHELL = """
         ::-webkit-scrollbar-track {{ background: transparent; }}
         ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
         body.dark-mode ::-webkit-scrollbar-thumb {{ background: #475569; }}
+
+        /* =========================================
+           STANDARD CSS FOR AI MODAL (NO TAILWIND)
+           ========================================= */
+        #ai-edit-modal {{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }}
+
+        #ai-edit-modal.active {{
+            display: flex;
+        }}
+
+        .ai-modal-content {{
+            background: white;
+            width: 500px;
+            max-width: 90%;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #e0e0e0;
+            font-family: sans-serif;
+            animation: popIn 0.3s ease-out;
+        }}
+
+        body.dark-mode .ai-modal-content {{
+            background: #1e293b;
+            border-color: #334155;
+            color: #fff;
+        }}
+
+        @keyframes popIn {{
+            from {{ transform: scale(0.9); opacity: 0; }}
+            to {{ transform: scale(1); opacity: 1; }}
+        }}
+
+        .ai-modal-header {{
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+
+        .ai-input-area {{
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            transition: border 0.2s;
+        }}
+
+        body.dark-mode .ai-input-area {{
+            background: #0f172a;
+            border-color: #475569;
+            color: white;
+        }}
+
+        .ai-input-area:focus {{
+            border-color: var(--theme-color);
+            outline: none;
+        }}
+
+        .ai-actions {{
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }}
+
+        .btn-ai-cancel {{
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            font-weight: 600;
+        }}
+        body.dark-mode .btn-ai-cancel {{ color: #aaa; }}
+
+        .btn-ai-generate {{
+            padding: 8px 20px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s;
+        }}
+
+        .btn-ai-generate:active {{ transform: scale(0.98); }}
+        .btn-ai-generate:disabled {{ opacity: 0.7; cursor: not-allowed; }}
+        
+        .ai-magic-btn {{
+            background: linear-gradient(135deg, #f43f5e, #ec4899);
+            color: white;
+            border: none;
+            width: 32px; 
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            margin-left: 5px;
+        }}
+        .ai-magic-btn:hover {{ transform: scale(1.1) rotate(10deg); }}
+
+        .loading-spinner {{
+            width: 16px; height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }}
+        @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex overflow-hidden">
 
     <div id="zoom-backdrop" onclick="closeAllZooms()"></div>
+
+    <div id="ai-edit-modal">
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <span><i class="fas fa-magic" style="margin-right:8px; color: #8b5cf6;"></i> AI Edit</span>
+                <button onclick="closeAIModal()" style="background:none; border:none; cursor:pointer; font-size:20px; color:#999;">&times;</button>
+            </div>
+            <p style="margin-bottom: 10px; font-size: 13px; opacity: 0.7;">
+                Describe how you want to change this slide (e.g., "Make it shorter", "Translate to Spanish", "Add a joke").
+            </p>
+            <textarea id="ai-prompt-input" class="ai-input-area" placeholder="Enter your instructions here..."></textarea>
+            <div class="ai-actions">
+                <button class="btn-ai-cancel" onclick="closeAIModal()">Cancel</button>
+                <button class="btn-ai-generate" onclick="executeAIGenerate()" id="btn-ai-submit">
+                    <span>Generate</span> <i class="fas fa-wand-magic-sparkles"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <aside class="h-screen bg-gray-900 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-50 shadow-2xl sidebar-expanded" id="sidebar">
         
@@ -357,6 +491,7 @@ HTML_PLAYER_SHELL = """
         // --- DATA INITIALIZATION ---
         const ORIGINAL_SLIDES = {js_slides_data};
         let SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES)); 
+        const API_KEY = "{api_key}"; // Injected by Python
         
         const state = {{ layout: 'vertical', reveal: 'click', currentSlideIdx: 0, darkMode: false, theme: '#6366f1' }};
         const container = document.getElementById('app-container');
@@ -374,13 +509,12 @@ HTML_PLAYER_SHELL = """
             setTheme(state.theme); 
         }};
         
-        // --- EDITING LOGIC (NEW) ---
+        // --- EDITING LOGIC ---
         function loadUserEdits() {{
             const saved = localStorage.getItem('my_course_edits');
             if (saved) {{
                 try {{
                     const savedSlides = JSON.parse(saved);
-                    // Merge saved content into current slides structure
                     if (savedSlides.length === SLIDES.length) {{
                          SLIDES = savedSlides;
                          console.log("Loaded user edits from local storage.");
@@ -392,6 +526,7 @@ HTML_PLAYER_SHELL = """
         function toggleEdit(index) {{
             const contentDiv = document.getElementById(`content-${{index}}`);
             const editBtn = document.getElementById(`edit-btn-${{index}}`);
+            const aiBtn = document.getElementById(`ai-btn-${{index}}`);
             const saveBtn = document.getElementById(`save-btn-${{index}}`);
             
             if (contentDiv) {{
@@ -399,13 +534,12 @@ HTML_PLAYER_SHELL = """
                 contentDiv.classList.add('editing-mode');
                 contentDiv.focus();
                 
-                // Show Save, Hide Edit
+                // Show Save, Hide Edit & AI
                 if(editBtn) editBtn.classList.add('hidden');
+                if(aiBtn) aiBtn.classList.add('hidden');
                 if(saveBtn) saveBtn.classList.remove('hidden');
                 
-                // Disable Reveal Mode while editing to avoid confusion
                 if (state.reveal !== 'all') {{
-                    // Temporarily show all items in this container so user sees what they are editing
                     contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
                 }}
             }}
@@ -414,30 +548,27 @@ HTML_PLAYER_SHELL = """
         function saveSlide(index) {{
             const contentDiv = document.getElementById(`content-${{index}}`);
             const editBtn = document.getElementById(`edit-btn-${{index}}`);
+            const aiBtn = document.getElementById(`ai-btn-${{index}}`);
             const saveBtn = document.getElementById(`save-btn-${{index}}`);
 
             if (contentDiv) {{
-                // 1. Capture HTML
                 const newHtml = contentDiv.innerHTML;
-                
-                // 2. Update Memory
                 SLIDES[index].html = newHtml;
+                persistChanges();
                 
-                // 3. Persist to Local Storage
-                localStorage.setItem('my_course_edits', JSON.stringify(SLIDES));
-                
-                // 4. UI Reset
                 contentDiv.contentEditable = "false";
                 contentDiv.classList.remove('editing-mode');
                 
                 if(editBtn) editBtn.classList.remove('hidden');
+                if(aiBtn) aiBtn.classList.remove('hidden');
                 if(saveBtn) saveBtn.classList.add('hidden');
                 
-                alert("Changes saved locally! They will persist even if you refresh.");
-                
-                // 5. Re-render to ensure clean state (optional, but good for resetting listeners)
-                // renderApp(); // Keeping it simple: don't full re-render to avoid losing scroll pos
+                // alert("Changes saved locally!"); 
             }}
+        }}
+
+        function persistChanges() {{
+            localStorage.setItem('my_course_edits', JSON.stringify(SLIDES));
         }}
         
         function resetAllEdits() {{
@@ -445,6 +576,136 @@ HTML_PLAYER_SHELL = """
                 localStorage.removeItem('my_course_edits');
                 SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES));
                 renderApp();
+            }}
+        }}
+
+        // --- AI EDITING LOGIC (NEW) ---
+        let currentEditingIndex = -1;
+
+        function openAIModal(index) {{
+            currentEditingIndex = index;
+            document.getElementById('ai-edit-modal').classList.add('active');
+            document.getElementById('ai-prompt-input').value = "";
+            document.getElementById('ai-prompt-input').focus();
+        }}
+
+        function closeAIModal() {{
+            document.getElementById('ai-edit-modal').classList.remove('active');
+            currentEditingIndex = -1;
+        }}
+
+        async function executeAIGenerate() {{
+            const prompt = document.getElementById('ai-prompt-input').value;
+            if(!prompt) return;
+
+            const submitBtn = document.getElementById('btn-ai-submit');
+            const originalBtnContent = submitBtn.innerHTML;
+            
+            // Set Loading State
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Generating...';
+
+            try {{
+                let currentHtml = SLIDES[currentEditingIndex].html;
+                const imgRegex = /<img[^>]+src=["']data:image\/[^"']+["'][^>]*>/i;
+                const imgMatch = currentHtml.match(imgRegex);
+                let savedImgTag = null;
+                
+                if (imgMatch) {{
+                    savedImgTag = imgMatch[0];
+                    // Swap the massive image code for a tiny placeholder
+                    currentHtml = currentHtml.replace(imgRegex, '');
+                }}
+                
+                // 1. Construct the Payload
+                // Using Gemini 2.5 Flash lite via REST API
+                const systemPrompt = `
+                You are an expert HTML editor for educational slides.
+                Task: Update the provided HTML based on the user's request.
+                
+                CRITICAL STYLING RULES:
+                - You MUST use these exact Tailwind classes for consistency:
+                  * Headers (h1-h3): "text-2xl font-bold {header_color} mb-3 mt-6"
+                  * Paragraphs (p): "reveal-item text-lg {body_color} leading-relaxed mb-4"
+                  * List Items (li): "reveal-item text-lg {body_color}"
+                  * Lists (ul): "list-disc pl-5 space-y-2 mb-4"
+                
+                Rules:
+                1. ALWAYS wrap every <p>, <li>, or header in the class 'reveal-item'.
+                2. Do NOT output markdown code blocks. Output ONLY raw HTML.
+                3. Maintain the image placeholder if it exists.
+                4. Be concise and professional.
+                `;
+
+                const userMessage = `
+                CURRENT HTML:
+                ${{currentHtml}}
+                
+                USER REQUEST:
+                ${{prompt}}
+                
+                OUTPUT NEW HTML:
+                `;
+
+                const payload = {{
+                    contents: [{{
+                        parts: [{{ text: systemPrompt + "\\n" + userMessage }}]
+                    }}]
+                }};
+
+                // 2. Call API
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${{API_KEY}}`, {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify(payload)
+                }});
+
+                const data = await response.json();
+                
+                if (data.error) {{
+                    throw new Error(data.error.message);
+                }}
+
+                let newHtml = data.candidates[0].content.parts[0].text;
+                
+                // Clean up potential markdown formatting from LLM
+                newHtml = newHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                // --- 2. IMAGE RESTORATION: Put the image back ---
+                if (savedImgTag) {{
+                    if (newHtml.includes('')) {{
+                        newHtml = newHtml.replace('', savedImgTag);
+                    }} else {{
+                        // If the AI accidentally deleted the placeholder, put the image at the top
+                        newHtml = '<div class="clearfix mb-8">' + savedImgTag + '</div>' + newHtml;
+                    }}
+                }}
+                // ----------------------------------------------------------------
+
+                // 3. Update Slide
+                SLIDES[currentEditingIndex].html = newHtml;
+
+                // 3. Update Slide
+                SLIDES[currentEditingIndex].html = newHtml;
+                persistChanges();
+                
+                // 4. Refresh View
+                const contentDiv = document.getElementById(`content-${{currentEditingIndex}}`);
+                if(contentDiv) {{
+                    contentDiv.innerHTML = newHtml;
+                    // Make visible if needed
+                    if(state.reveal !== 'click') {{
+                        contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
+                    }}
+                }}
+
+                closeAIModal();
+
+            }} catch (err) {{
+                alert("AI Generation Failed: " + err.message);
+            }} finally {{
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
             }}
         }}
 
@@ -542,12 +803,9 @@ HTML_PLAYER_SHELL = """
             setActive('btn-click', state.reveal === 'click');
             setActive('btn-all', state.reveal === 'all');
             
-            // --- NEW CODE STARTS HERE ---
-            // Update Theme Color Buttons
             document.querySelectorAll('.theme-btn').forEach(btn => {{
                 const color = btn.getAttribute('data-color');
                 if (color === state.theme) {{
-                    // Add ring and force the ring color using CSS variable
                     btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-gray-900');
                     btn.style.setProperty('--tw-ring-color', color);
                 }} else {{
@@ -555,7 +813,6 @@ HTML_PLAYER_SHELL = """
                     btn.style.removeProperty('--tw-ring-color');
                 }}
             }});
-            // --- NEW CODE ENDS HERE ---
 
             const dmBg = document.getElementById('dm-toggle-bg');
             if (state.darkMode) dmBg.style.backgroundColor = state.theme;
@@ -602,9 +859,12 @@ HTML_PLAYER_SHELL = """
                                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Part ${{index + 1}}</span>
                                 <h2 class="text-3xl font-bold transition-colors duration-300">${{slide.title}}</h2>
                             </div>
-                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                 <button id="edit-btn-${{index}}" onclick="toggleEdit(${{index}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Content">
                                     <i class="fas fa-pen"></i>
+                                </button>
+                                <button id="ai-btn-${{index}}" onclick="openAIModal(${{index}})" class="ai-magic-btn" title="AI Edit">
+                                    <i class="fas fa-wand-magic-sparkles"></i>
                                 </button>
                                 <button id="save-btn-${{index}}" onclick="saveSlide(${{index}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
                                     <i class="fas fa-check"></i> Save
@@ -635,6 +895,9 @@ HTML_PLAYER_SHELL = """
                         <button id="edit-btn-${{idx}}" onclick="toggleEdit(${{idx}})" class="text-gray-400 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition" title="Edit Slide">
                             <i class="fas fa-pen"></i>
                         </button>
+                        <button id="ai-btn-${{idx}}" onclick="openAIModal(${{idx}})" class="ai-magic-btn" title="AI Edit">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                        </button>
                         <button id="save-btn-${{idx}}" onclick="saveSlide(${{idx}})" class="hidden text-white bg-green-500 hover:bg-green-600 p-2 px-3 rounded-full shadow-md transition" title="Save Changes">
                             <i class="fas fa-check"></i> Save
                         </button>
@@ -659,6 +922,7 @@ HTML_PLAYER_SHELL = """
 
         function handleMainAction() {{
             if (document.querySelector('.editing-mode')) return; // Block nav while editing
+            if (document.getElementById('ai-edit-modal').classList.contains('active')) return; // Block nav while AI modal open
 
             // 1. Reveal Logic
             if (state.reveal === 'click') {{
@@ -677,6 +941,7 @@ HTML_PLAYER_SHELL = """
 
         function handleBackAction() {{
             if (document.querySelector('.editing-mode')) return; 
+            if (document.getElementById('ai-edit-modal').classList.contains('active')) return;
 
             if (state.reveal === 'click') {{
                 const visibleItems = Array.from(document.querySelectorAll('.reveal-item.visible'));
@@ -749,6 +1014,10 @@ HTML_PLAYER_SHELL = """
         document.addEventListener('keydown', (e) => {{
             // Disable hotkeys while editing
             if (document.querySelector('.editing-mode')) return;
+            if (document.getElementById('ai-edit-modal').classList.contains('active')) {{
+                if(e.key === "Escape") closeAIModal();
+                return;
+            }}
 
             if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{ 
                 e.preventDefault(); 
@@ -832,11 +1101,12 @@ def process_slides():
         logo_image=logo_b64,
         js_slides_data=js_slides_data,
         custom_animation_css=anim_css,
-        # Branding
+        api_key=gemini_api_key,
         bg_accent=C_BG_ACCENT,
         header_color=C_HEADER,
         primary_color=C_PRIMARY,
-        border_color=C_BORDER
+        border_color=C_BORDER,
+        body_color=C_BODY
     )
 
     # Save ONE file
