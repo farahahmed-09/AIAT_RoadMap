@@ -128,240 +128,55 @@ HTML_PLAYER_SHELL = """
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {{
-            --theme-color: #4f46e5; 
-        }}
-
+        /* [STYLES REMAIN UNCHANGED - CUT FOR BREVITY] */
+        :root {{ --theme-color: #4f46e5; }}
         html {{ scroll-behavior: smooth; }}
-        body {{ 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            transition: background 0.3s, color 0.3s; 
-        }}
-        
-        /* --- THEME APPLICATION --- */
+        body {{ font-family: 'Segoe UI', Roboto, sans-serif; transition: background 0.3s, color 0.3s; }}
         .theme-bg {{ background-color: var(--theme-color) !important; }}
         .theme-text {{ color: var(--theme-color) !important; }}
         .theme-border {{ border-color: var(--theme-color) !important; }}
-        
-        main h1, main h2, main h3, main h4, main strong, main b {{
-            color: var(--theme-color) !important;
-        }}
-        main ul li::marker {{
-            color: var(--theme-color) !important;
-        }}
-
-        /* --- DARK MODE CORE --- */
+        main h1, main h2, main h3, main h4, main strong, main b {{ color: var(--theme-color) !important; }}
+        main ul li::marker {{ color: var(--theme-color) !important; }}
         body.dark-mode {{ background-color: #0f172a; color: #cbd5e1; }}
-        
-        body.dark-mode main {{ 
-            background-color: #1e293b !important; 
-            border-color: #334155 !important; 
-            color: #e2e8f0 !important;
-        }}
-        
+        body.dark-mode main {{ background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }}
         body.dark-mode p, body.dark-mode li {{ color: #cbd5e1 !important; }}
         body.dark-mode .bg-gray-100 {{ background-color: #334155 !important; color: #cbd5e1 !important; }}
         body.dark-mode hr {{ border-color: #334155 !important; }}
-        
-        body.dark-mode #zoom-backdrop {{
-            background: rgba(0, 0, 0, 0.85);
-        }}
-
-        /* --- DYNAMIC ANIMATION CSS --- */
+        body.dark-mode #zoom-backdrop {{ background: rgba(0, 0, 0, 0.85); }}
         {custom_animation_css}
-
-        /* --- REVEAL LOGIC --- */
-        body.reveal-disabled .reveal-item {{
-            opacity: 1 !important;
-            transform: none !important;
-            filter: none !important;
-            pointer-events: auto !important;
-        }}
-
-        /* --- EDIT MODE STYLES --- */
-        .editing-mode {{
-            border: 2px dashed var(--theme-color);
-            padding: 10px;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.5);
-            outline: none;
-            cursor: text;
-        }}
-        body.dark-mode .editing-mode {{
-            background-color: rgba(0, 0, 0, 0.2);
-        }}
-
-        /* --- LAYOUT UTILS --- */
+        body.reveal-disabled .reveal-item {{ opacity: 1 !important; transform: none !important; filter: none !important; pointer-events: auto !important; }}
+        .editing-mode {{ border: 2px dashed var(--theme-color); padding: 10px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.5); outline: none; cursor: text; }}
+        body.dark-mode .editing-mode {{ background-color: rgba(0, 0, 0, 0.2); }}
         .sidebar-expanded {{ width: 220px; }}
         .sidebar-collapsed {{ width: 120px; }}
-        
-        /* --- IMAGE ZOOM STYLES --- */
-        #zoom-backdrop {{
-            position: fixed; inset: 0;
-            background: rgba(255, 255, 255, 0.75); 
-            z-index: 9990;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-            backdrop-filter: blur(10px);
-        }}
+        #zoom-backdrop {{ position: fixed; inset: 0; background: rgba(255, 255, 255, 0.75); z-index: 9990; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(10px); }}
         #zoom-backdrop.active {{ opacity: 1; pointer-events: auto; }}
-        
-        main img {{
-            cursor: zoom-in !important;
-            position: relative; 
-            z-index: 10;
-            display: inline-block; 
-            transition: transform 0.2s;
-            border-radius: 8px;
-        }}
-        main img:hover {{
-            transform: scale(1.02);
-            z-index: 20;
-        }}
-        .img-zoomed {{
-            cursor: zoom-out !important;
-            z-index: 9999 !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-        }}
-
+        main img {{ cursor: zoom-in !important; position: relative; z-index: 10; display: inline-block; transition: transform 0.2s; border-radius: 8px; }}
+        main img:hover {{ transform: scale(1.02); z-index: 20; }}
+        .img-zoomed {{ cursor: zoom-out !important; z-index: 9999 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }}
         ::-webkit-scrollbar {{ width: 8px; }}
         ::-webkit-scrollbar-track {{ background: transparent; }}
         ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
         body.dark-mode ::-webkit-scrollbar-thumb {{ background: #475569; }}
-
-        /* =========================================
-           STANDARD CSS FOR AI MODAL (NO TAILWIND)
-           ========================================= */
-        #ai-edit-modal {{
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-        }}
-
-        #ai-edit-modal.active {{
-            display: flex;
-        }}
-
-        .ai-modal-content {{
-            background: white;
-            width: 500px;
-            max-width: 90%;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 1px solid #e0e0e0;
-            font-family: sans-serif;
-            animation: popIn 0.3s ease-out;
-        }}
-
-        body.dark-mode .ai-modal-content {{
-            background: #1e293b;
-            border-color: #334155;
-            color: #fff;
-        }}
-
-        @keyframes popIn {{
-            from {{ transform: scale(0.9); opacity: 0; }}
-            to {{ transform: scale(1); opacity: 1; }}
-        }}
-
-        .ai-modal-header {{
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }}
-
-        .ai-input-area {{
-            width: 100%;
-            height: 100px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 14px;
-            resize: none;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            transition: border 0.2s;
-        }}
-
-        body.dark-mode .ai-input-area {{
-            background: #0f172a;
-            border-color: #475569;
-            color: white;
-        }}
-
-        .ai-input-area:focus {{
-            border-color: var(--theme-color);
-            outline: none;
-        }}
-
-        .ai-actions {{
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }}
-
-        .btn-ai-cancel {{
-            padding: 8px 16px;
-            border: none;
-            background: transparent;
-            color: #666;
-            cursor: pointer;
-            font-weight: 600;
-        }}
+        #ai-edit-modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }}
+        #ai-edit-modal.active {{ display: flex; }}
+        .ai-modal-content {{ background: white; width: 500px; max-width: 90%; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #e0e0e0; font-family: sans-serif; animation: popIn 0.3s ease-out; }}
+        body.dark-mode .ai-modal-content {{ background: #1e293b; border-color: #334155; color: #fff; }}
+        @keyframes popIn {{ from {{ transform: scale(0.9); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
+        .ai-modal-header {{ font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }}
+        .ai-input-area {{ width: 100%; height: 100px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; resize: none; box-sizing: border-box; margin-bottom: 15px; transition: border 0.2s; }}
+        body.dark-mode .ai-input-area {{ background: #0f172a; border-color: #475569; color: white; }}
+        .ai-input-area:focus {{ border-color: var(--theme-color); outline: none; }}
+        .ai-actions {{ display: flex; justify-content: flex-end; gap: 10px; }}
+        .btn-ai-cancel {{ padding: 8px 16px; border: none; background: transparent; color: #666; cursor: pointer; font-weight: 600; }}
         body.dark-mode .btn-ai-cancel {{ color: #aaa; }}
-
-        .btn-ai-generate {{
-            padding: 8px 20px;
-            border: none;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.1s;
-        }}
-
+        .btn-ai-generate {{ padding: 8px 20px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; transition: transform 0.1s; }}
         .btn-ai-generate:active {{ transform: scale(0.98); }}
         .btn-ai-generate:disabled {{ opacity: 0.7; cursor: not-allowed; }}
-        
-        .ai-magic-btn {{
-            background: linear-gradient(135deg, #f43f5e, #ec4899);
-            color: white;
-            border: none;
-            width: 32px; 
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            margin-left: 5px;
-        }}
+        .ai-magic-btn {{ background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; margin-left: 5px; }}
         .ai-magic-btn:hover {{ transform: scale(1.1) rotate(10deg); }}
-
-        .loading-spinner {{
-            width: 16px; height: 16px;
-            border: 2px solid #ffffff;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }}
+        .loading-spinner {{ width: 16px; height: 16px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }}
         @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex overflow-hidden">
@@ -375,7 +190,7 @@ HTML_PLAYER_SHELL = """
                 <button onclick="closeAIModal()" style="background:none; border:none; cursor:pointer; font-size:20px; color:#999;">&times;</button>
             </div>
             <p style="margin-bottom: 10px; font-size: 13px; opacity: 0.7;">
-                Describe how you want to change this slide (e.g., "Make it shorter", "Translate to Spanish", "Add a joke").
+                Describe how you want to change this slide. You will be asked for your API key securely.
             </p>
             <textarea id="ai-prompt-input" class="ai-input-area" placeholder="Enter your instructions here..."></textarea>
             <div class="ai-actions">
@@ -388,30 +203,24 @@ HTML_PLAYER_SHELL = """
     </div>
 
     <aside class="h-screen bg-gray-900 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-50 shadow-2xl sidebar-expanded" id="sidebar">
-        
         <div class="p-6 flex items-center justify-between border-b border-gray-700 h-20">
             <div class="flex items-center gap-3 overflow-hidden">
                 <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold theme-bg text-white transition-colors duration-300">AI</div>
                 <span class="font-bold text-lg tracking-wide sidebar-text whitespace-nowrap opacity-100 transition-opacity">Controls</span>
             </div>
-            
             <button onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all focus:outline-none">
                 <i class="fas fa-chevron-left transition-transform duration-300" id="sidebar-toggle-icon"></i>
             </button>
         </div>
-        
         <div class="p-6 flex-1 overflow-y-auto space-y-8 custom-scrollbar">
-            
             <div>
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Appearance</h3>
-                
                 <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-700 hover:bg-gray-800 transition mb-4">
                     <span class="sidebar-text text-sm flex items-center gap-2"><i class="fas fa-moon"></i> Dark Mode</span>
                     <div class="w-10 h-5 bg-gray-700 rounded-full relative" id="dm-toggle-bg">
                         <div class="w-5 h-5 bg-white rounded-full absolute left-0 transition-all duration-300" id="dm-toggle-dot"></div>
                     </div>
                 </button>
-
                 <div class="flex gap-2 justify-between sidebar-text">
                     <button onclick="setTheme('#6366f1')" data-color="#6366f1" class="theme-btn w-8 h-8 rounded-full bg-[#6366f1] border-2 border-transparent hover:scale-110 transition" title="Indigo"></button>
                     <button onclick="setTheme('#f43f5e')" data-color="#f43f5e" class="theme-btn w-8 h-8 rounded-full bg-[#f43f5e] border-2 border-transparent hover:scale-110 transition" title="Rose"></button>
@@ -420,9 +229,7 @@ HTML_PLAYER_SHELL = """
                     <button onclick="setTheme('#0ea5e9')" data-color="#0ea5e9" class="theme-btn w-8 h-8 rounded-full bg-[#0ea5e9] border-2 border-transparent hover:scale-110 transition" title="Sky"></button>
                 </div>
             </div>
-
             <hr class="border-gray-800">
-
             <div>
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Layout</h3>
                 <div class="flex flex-col gap-2">
@@ -436,7 +243,6 @@ HTML_PLAYER_SHELL = """
                     </button>
                 </div>
             </div>
-
             <div>
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 sidebar-text">Animation</h3>
                 <div class="flex flex-col gap-2">
@@ -455,16 +261,14 @@ HTML_PLAYER_SHELL = """
                     <i class="fas fa-trash-alt mr-2"></i> Reset My Edits
                  </button>
             </div>
-
             <div class="pt-8 border-t border-gray-800 sidebar-text">
                 <div class="text-xs text-gray-500 mb-2">PROGRESS</div>
                 <div class="text-2xl font-bold theme-text transition-colors duration-300" id="progress-pct">0%</div>
             </div>
         </div>
-        </aside>
+    </aside>
 
     <div class="flex-1 relative h-screen overflow-y-auto transition-colors duration-300" id="main-scroll-container">
-        
         <header class="bg-white/90 backdrop-blur sticky top-0 z-40 px-8 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm transition-colors duration-300 dark:bg-slate-900/90 dark:border-slate-700">
             <div class="flex items-center gap-4">
                  <img src="{logo_image}" class="h-10 w-auto object-contain" alt="Logo">
@@ -484,14 +288,13 @@ HTML_PLAYER_SHELL = """
                 <span>Next</span> <i class="fas fa-chevron-down" id="next-icon"></i>
             </button>
         </div>
-
     </div>
 
     <script>
         // --- DATA INITIALIZATION ---
         const ORIGINAL_SLIDES = {js_slides_data};
         let SLIDES = JSON.parse(JSON.stringify(ORIGINAL_SLIDES)); 
-        const API_KEY = "{api_key}"; // Injected by Python
+        // NOTE: API KEY IS NOT STORED HERE.
         
         const state = {{ layout: 'vertical', reveal: 'click', currentSlideIdx: 0, darkMode: false, theme: '#6366f1' }};
         const container = document.getElementById('app-container');
@@ -515,10 +318,7 @@ HTML_PLAYER_SHELL = """
             if (saved) {{
                 try {{
                     const savedSlides = JSON.parse(saved);
-                    if (savedSlides.length === SLIDES.length) {{
-                         SLIDES = savedSlides;
-                         console.log("Loaded user edits from local storage.");
-                    }}
+                    if (savedSlides.length === SLIDES.length) {{ SLIDES = savedSlides; }}
                 }} catch(e) {{ console.error("Error loading edits", e); }}
             }}
         }}
@@ -534,7 +334,6 @@ HTML_PLAYER_SHELL = """
                 contentDiv.classList.add('editing-mode');
                 contentDiv.focus();
                 
-                // Show Save, Hide Edit & AI
                 if(editBtn) editBtn.classList.add('hidden');
                 if(aiBtn) aiBtn.classList.add('hidden');
                 if(saveBtn) saveBtn.classList.remove('hidden');
@@ -555,15 +354,11 @@ HTML_PLAYER_SHELL = """
                 const newHtml = contentDiv.innerHTML;
                 SLIDES[index].html = newHtml;
                 persistChanges();
-                
                 contentDiv.contentEditable = "false";
                 contentDiv.classList.remove('editing-mode');
-                
                 if(editBtn) editBtn.classList.remove('hidden');
                 if(aiBtn) aiBtn.classList.remove('hidden');
                 if(saveBtn) saveBtn.classList.add('hidden');
-                
-                // alert("Changes saved locally!"); 
             }}
         }}
 
@@ -579,7 +374,7 @@ HTML_PLAYER_SHELL = """
             }}
         }}
 
-        // --- AI EDITING LOGIC (NEW) ---
+        // --- AI EDITING LOGIC (SECURE) ---
         let currentEditingIndex = -1;
 
         function openAIModal(index) {{
@@ -595,8 +390,17 @@ HTML_PLAYER_SHELL = """
         }}
 
         async function executeAIGenerate() {{
-            const prompt = document.getElementById('ai-prompt-input').value;
-            if(!prompt) return;
+            const promptText = document.getElementById('ai-prompt-input').value;
+            if(!promptText) return;
+
+            // 1. SECURELY ASK FOR KEY
+            // using window.prompt to keep it out of DOM and strictly in transient memory
+            let tempKey = window.prompt("Please enter your Gemini API Key for this request:\\n(It will be deleted from memory immediately after use)");
+
+            if (!tempKey || tempKey.trim() === "") {{
+                alert("API Key is required to use AI features.");
+                return;
+            }}
 
             const submitBtn = document.getElementById('btn-ai-submit');
             const originalBtnContent = submitBtn.innerHTML;
@@ -613,12 +417,10 @@ HTML_PLAYER_SHELL = """
                 
                 if (imgMatch) {{
                     savedImgTag = imgMatch[0];
-                    // Swap the massive image code for a tiny placeholder
                     currentHtml = currentHtml.replace(imgRegex, '');
                 }}
                 
-                // 1. Construct the Payload
-                // Using Gemini 2.5 Flash lite via REST API
+                // 2. Construct Payload
                 const systemPrompt = `
                 You are an expert HTML editor for educational slides.
                 Task: Update the provided HTML based on the user's request.
@@ -642,7 +444,7 @@ HTML_PLAYER_SHELL = """
                 ${{currentHtml}}
                 
                 USER REQUEST:
-                ${{prompt}}
+                ${{promptText}}
                 
                 OUTPUT NEW HTML:
                 `;
@@ -653,12 +455,15 @@ HTML_PLAYER_SHELL = """
                     }}]
                 }};
 
-                // 2. Call API
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${{API_KEY}}`, {{
+                // 3. Call API using the user provided key
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${{tempKey}}`, {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify(payload)
                 }});
+
+                // 4. MEMORY CLEANUP: Delete key immediately
+                tempKey = null;
 
                 const data = await response.json();
                 
@@ -667,33 +472,22 @@ HTML_PLAYER_SHELL = """
                 }}
 
                 let newHtml = data.candidates[0].content.parts[0].text;
-                
-                // Clean up potential markdown formatting from LLM
                 newHtml = newHtml.replace(/```html/g, '').replace(/```/g, '').trim();
 
-                // --- 2. IMAGE RESTORATION: Put the image back ---
                 if (savedImgTag) {{
                     if (newHtml.includes('')) {{
                         newHtml = newHtml.replace('', savedImgTag);
                     }} else {{
-                        // If the AI accidentally deleted the placeholder, put the image at the top
                         newHtml = '<div class="clearfix mb-8">' + savedImgTag + '</div>' + newHtml;
                     }}
                 }}
-                // ----------------------------------------------------------------
 
-                // 3. Update Slide
-                SLIDES[currentEditingIndex].html = newHtml;
-
-                // 3. Update Slide
                 SLIDES[currentEditingIndex].html = newHtml;
                 persistChanges();
                 
-                // 4. Refresh View
                 const contentDiv = document.getElementById(`content-${{currentEditingIndex}}`);
                 if(contentDiv) {{
                     contentDiv.innerHTML = newHtml;
-                    // Make visible if needed
                     if(state.reveal !== 'click') {{
                         contentDiv.querySelectorAll('.reveal-item').forEach(el => el.classList.add('visible'));
                     }}
@@ -704,39 +498,33 @@ HTML_PLAYER_SHELL = """
             }} catch (err) {{
                 alert("AI Generation Failed: " + err.message);
             }} finally {{
+                // Double check cleanup
+                tempKey = null; 
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnContent;
             }}
         }}
 
-        // --- THEME & DARK MODE ---
+        // --- THEME, DARK MODE, ZOOM, RENDER (Unchanged) ---
         function setTheme(colorHex) {{
             state.theme = colorHex;
             document.documentElement.style.setProperty('--theme-color', colorHex);
             updateButtonStyles();
         }}
-
         function toggleDarkMode() {{
             state.darkMode = !state.darkMode;
             const dot = document.getElementById('dm-toggle-dot');
             const bg = document.getElementById('dm-toggle-bg');
-            
             if (state.darkMode) {{
                 document.body.classList.add('dark-mode');
                 dot.style.transform = 'translateX(1.25rem)';
-                bg.classList.remove('bg-gray-700');
-                bg.classList.add('theme-bg');
-                bg.style.backgroundColor = state.theme;
+                bg.classList.remove('bg-gray-700'); bg.classList.add('theme-bg'); bg.style.backgroundColor = state.theme;
             }} else {{
                 document.body.classList.remove('dark-mode');
                 dot.style.transform = 'translateX(0)';
-                bg.classList.add('bg-gray-700');
-                bg.classList.remove('theme-bg');
-                bg.style.backgroundColor = '';
+                bg.classList.add('bg-gray-700'); bg.classList.remove('theme-bg'); bg.style.backgroundColor = '';
             }}
         }}
-
-        // --- ZOOM LOGIC ---
         document.addEventListener('click', (e) => {{
             if (e.target.tagName === 'IMG' && e.target.closest('main')) {{
                 toggleZoom(e.target);
@@ -764,7 +552,6 @@ HTML_PLAYER_SHELL = """
                 placeholder.style.marginBottom = window.getComputedStyle(img).marginBottom;
                 placeholder.style.marginLeft = window.getComputedStyle(img).marginLeft;
                 img.parentNode.insertBefore(placeholder, img);
-                
                 img.style.position = 'fixed'; img.style.top = rect.top + 'px'; img.style.left = rect.left + 'px';
                 img.style.width = rect.width + 'px'; img.style.height = rect.height + 'px';
                 img.style.zIndex = '9999'; img.style.transition = 'all 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
@@ -776,25 +563,20 @@ HTML_PLAYER_SHELL = """
             }}
         }}
         function closeAllZooms() {{ const z = document.querySelector('.img-zoomed'); if(z) toggleZoom(z); }}
-
-        // --- RENDER & SETTINGS ---
         function setMode(type, value) {{
             state[type] = value;
             updateButtonStyles();
             if (type === 'layout') renderApp();
             if (type === 'reveal') toggleRevealClass();
         }}
-
         function updateButtonStyles() {{
             const setActive = (id, isActive) => {{
                 const el = document.getElementById(id);
                 if (isActive) {{
-                    el.classList.add('theme-bg', 'theme-border', 'text-white');
-                    el.classList.remove('text-gray-400');
+                    el.classList.add('theme-bg', 'theme-border', 'text-white'); el.classList.remove('text-gray-400');
                     el.style.backgroundColor = state.theme; el.style.borderColor = state.theme;
                 }} else {{
-                    el.classList.remove('theme-bg', 'theme-border', 'text-white');
-                    el.classList.add('text-gray-400');
+                    el.classList.remove('theme-bg', 'theme-border', 'text-white'); el.classList.add('text-gray-400');
                     el.style.backgroundColor = ''; el.style.borderColor = '';
                 }}
             }};
@@ -802,24 +584,18 @@ HTML_PLAYER_SHELL = """
             setActive('btn-horizontal', state.layout === 'horizontal');
             setActive('btn-click', state.reveal === 'click');
             setActive('btn-all', state.reveal === 'all');
-            
             document.querySelectorAll('.theme-btn').forEach(btn => {{
                 const color = btn.getAttribute('data-color');
                 if (color === state.theme) {{
-                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-gray-900');
-                    btn.style.setProperty('--tw-ring-color', color);
+                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-offset-gray-900'); btn.style.setProperty('--tw-ring-color', color);
                 }} else {{
-                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-gray-900');
-                    btn.style.removeProperty('--tw-ring-color');
+                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-gray-900'); btn.style.removeProperty('--tw-ring-color');
                 }}
             }});
-
             const dmBg = document.getElementById('dm-toggle-bg');
             if (state.darkMode) dmBg.style.backgroundColor = state.theme;
-            
             toggleRevealClass();
         }}
-
         function toggleRevealClass() {{
             if (state.reveal === 'all') {{
                 document.body.classList.add('reveal-disabled');
@@ -836,7 +612,6 @@ HTML_PLAYER_SHELL = """
                 nextBtn.appendChild(nextIcon); 
             }}
         }}
-
         function renderApp() {{
             container.innerHTML = '';
             if (state.layout === 'vertical') renderVerticalLayout();
@@ -844,7 +619,6 @@ HTML_PLAYER_SHELL = """
             updateButtonStyles();
             updateProgress(); 
         }}
-
         function renderVerticalLayout() {{
             const card = document.createElement('main');
             card.className = "bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden transition-colors duration-300";
@@ -881,11 +655,9 @@ HTML_PLAYER_SHELL = """
             container.appendChild(card);
             document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
         }}
-
         function renderHorizontalLayout() {{
             const slide = SLIDES[state.currentSlideIdx];
             const idx = state.currentSlideIdx;
-            
             const card = document.createElement('main');
             card.className = "bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden p-12 min-h-[600px] flex flex-col animation-fade transition-colors duration-300 relative";
             card.innerHTML = `
@@ -917,71 +689,43 @@ HTML_PLAYER_SHELL = """
                  card.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('visible'));
             }}
         }}
-
-        // --- NAVIGATION LOGIC ---
-
         function handleMainAction() {{
-            if (document.querySelector('.editing-mode')) return; // Block nav while editing
-            if (document.getElementById('ai-edit-modal').classList.contains('active')) return; // Block nav while AI modal open
-
-            // 1. Reveal Logic
+            if (document.querySelector('.editing-mode')) return;
+            if (document.getElementById('ai-edit-modal').classList.contains('active')) return;
             if (state.reveal === 'click') {{
                 const hiddenItem = container.querySelector('.reveal-item:not(.visible)');
                 if (hiddenItem) {{
                     hiddenItem.classList.add('visible');
                     hiddenItem.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                    updateProgress();
-                    return;
+                    updateProgress(); return;
                 }}
             }}
-            // 2. Navigation Logic
             if (state.layout === 'horizontal') nextSlide();
             else scrollContainer.scrollBy({{ top: 300, behavior: 'smooth' }});
         }}
-
         function handleBackAction() {{
             if (document.querySelector('.editing-mode')) return; 
             if (document.getElementById('ai-edit-modal').classList.contains('active')) return;
-
             if (state.reveal === 'click') {{
                 const visibleItems = Array.from(document.querySelectorAll('.reveal-item.visible'));
                 if (visibleItems.length > 0) {{
                     const lastItem = visibleItems[visibleItems.length - 1];
                     lastItem.classList.remove('visible');
-                    
                     if (visibleItems.length > 1) {{
                         visibleItems[visibleItems.length - 2].scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                    }} else {{
-                        if(state.layout === 'horizontal') container.scrollIntoView({{behavior: 'smooth'}});
-                    }}
-                    updateProgress();
-                    return;
+                    }} else {{ if(state.layout === 'horizontal') container.scrollIntoView({{behavior: 'smooth'}}); }}
+                    updateProgress(); return;
                 }}
             }}
-            
-            if (state.layout === 'horizontal') {{
-                prevSlide();
-            }} else {{
-                scrollContainer.scrollBy({{ top: -300, behavior: 'smooth' }});
-            }}
+            if (state.layout === 'horizontal') prevSlide();
+            else scrollContainer.scrollBy({{ top: -300, behavior: 'smooth' }});
         }}
-
         function nextSlide() {{
-            if (state.currentSlideIdx < SLIDES.length - 1) {{
-                state.currentSlideIdx++;
-                renderApp();
-                scrollContainer.scrollTop = 0;
-            }} else {{ alert("End of Course!"); }}
+            if (state.currentSlideIdx < SLIDES.length - 1) {{ state.currentSlideIdx++; renderApp(); scrollContainer.scrollTop = 0; }} else {{ alert("End of Course!"); }}
         }}
-
         function prevSlide() {{
-            if (state.currentSlideIdx > 0) {{
-                state.currentSlideIdx--;
-                renderApp();
-                scrollContainer.scrollTop = 0;
-            }}
+            if (state.currentSlideIdx > 0) {{ state.currentSlideIdx--; renderApp(); scrollContainer.scrollTop = 0; }}
         }}
-
         function updateProgress() {{
             if (state.layout === 'horizontal') {{
                 const pct = Math.round(((state.currentSlideIdx + 1) / SLIDES.length) * 100);
@@ -995,11 +739,9 @@ HTML_PLAYER_SHELL = """
                 }}
             }}
         }}
-
         function toggleSidebar() {{
             const sb = document.getElementById('sidebar');
             const icon = document.getElementById('sidebar-toggle-icon');
-            
             if (sb.classList.contains('sidebar-expanded')) {{
                 sb.classList.remove('sidebar-expanded'); sb.classList.add('sidebar-collapsed');
                 document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
@@ -1010,23 +752,11 @@ HTML_PLAYER_SHELL = """
                 if(icon) icon.style.transform = 'rotate(0deg)';
             }}
         }}
-
         document.addEventListener('keydown', (e) => {{
-            // Disable hotkeys while editing
             if (document.querySelector('.editing-mode')) return;
-            if (document.getElementById('ai-edit-modal').classList.contains('active')) {{
-                if(e.key === "Escape") closeAIModal();
-                return;
-            }}
-
-            if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{ 
-                e.preventDefault(); 
-                handleMainAction(); 
-            }}
-            if (e.key === "ArrowLeft") {{ 
-                e.preventDefault(); 
-                handleBackAction(); 
-            }}
+            if (document.getElementById('ai-edit-modal').classList.contains('active')) {{ if(e.key === "Escape") closeAIModal(); return; }}
+            if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {{ e.preventDefault(); handleMainAction(); }}
+            if (e.key === "ArrowLeft") {{ e.preventDefault(); handleBackAction(); }}
             if (e.key === "Escape") closeAllZooms();
         }});
     </script>
